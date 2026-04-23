@@ -1,515 +1,22 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-
-/**
- * DORÉ | Boutique de Assados
- * VERSÃO FINAL DE PRODUÇÃO (GitHub Pages Ready)
- * Correções: Inputs de Carrinho restaurados, Performance de Scroll (Passive Events), Lazy Loading.
- * Estética: Cimento Queimado (Slate Dark) + Glassmorphism Premium.
- */
-
-const LOGO_URL = "https://alisachapeco.com.br/assets/images/image19.png?v=5f40d70b";
-const SENSORIAL_IMG = "https://alisachapeco.com.br/assets/images/image21.png?v=e9c990c3";
-
-const PRODUCTS = {
-  frangos: [
-    { 
-      id: 'f1', 
-      name: 'DORÉ Clássico', 
-      desc: 'Assado lentamente em baixa temperatura. Crosta de ouro e suculência preservada.', 
-      price: 115, 
-      img: 'https://alisachapeco.com.br/assets/images/image20.jpg?v=e9c990c3' 
-    },
-    { 
-      id: 'f2', 
-      name: 'DORÉ Recheado', 
-      desc: 'Frango nobre recheado com farofa artesanal de miúdos, sálvia e especiarias.', 
-      price: 145, 
-      img: 'https://alisachapeco.com.br/assets/images/image18.jpg?v=e9c990c3' 
-    }
-  ],
-  farofas: [
-    { id: 'a1', name: 'Farofa de Pistache & Bacon', desc: 'Pistaches selecionados, bacon artesanal e manteiga noisette.', price: 42 },
-    { id: 'a2', name: 'Farofa Panko Gourmet', desc: 'Crocância extrema finalizada com autêntica manteiga de garrafa.', price: 35 }
-  ],
-  molhos: [
-    { id: 'm1', name: 'Aioli de Alho Negro', desc: 'Sabor umami profundo e notas adocicadas sutis.', price: 18 },
-    { id: 'm2', name: 'Chimichurri da Boutique', desc: 'Ervas frescas e azeite extra virgem de primeira prensa.', price: 15 },
-    { id: 'm3', name: 'Mostarda & Mel Silvestre', desc: 'O equilíbrio perfeito e nobre entre picância e doçura.', price: 16 }
-  ]
-};
-
-const BAIRROS_FRETE = {
-  'Centro': 12,
-  'Efapi': 20,
-  'Santa Maria': 15,
-  'Passo dos Fortes': 15,
-  'Bela Vista': 12,
-  'Outros': 18
-};
-
-const HORARIOS_ENTREGA = [
-  'Domingo | 11:00 - 11:30',
-  'Domingo | 11:30 - 12:00',
-  'Domingo | 12:00 - 12:30',
-  'Domingo | 12:30 - 13:00'
-];
-
-export default function App() {
-  const [stage, setStage] = useState('gate'); // gate -> shop
-  const [cart, setCart] = useState([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [bairro, setBairro] = useState('Centro');
-  const [horario, setHorario] = useState(HORARIOS_ENTREGA[0]);
-  const [instrucoes, setInstrucoes] = useState('');
-  const [toast, setToast] = useState(null);
-
-  // --- MOTOR SENSORIAL (Spotlight Infinito + Mouse Tracking) ---
-  const requestRef = useRef();
-  const isIdle = useRef(true);
-
-  const animateSpotlight = (time) => {
-    if (isIdle.current) {
-      // Movimento infinito em "8"
-      const speed = 0.0012;
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
-      const rx = window.innerWidth * 0.35; 
-      const ry = window.innerHeight * 0.25; 
-      
-      const x = centerX + rx * Math.sin(time * speed);
-      const y = centerY + ry * Math.sin(time * speed * 2);
-
-      document.documentElement.style.setProperty('--mouse-x', `${x}px`);
-      document.documentElement.style.setProperty('--mouse-y', `${y}px`);
-      
-      requestRef.current = requestAnimationFrame(animateSpotlight);
-    }
-  };
-
-  useEffect(() => {
-    // Inicia a animação inativa do refletor
-    requestRef.current = requestAnimationFrame(animateSpotlight);
-
-    const handleMove = (e) => {
-      // Cancela a animação autônoma assim que o usuário interagir
-      if (isIdle.current) {
-        isIdle.current = false;
-        cancelAnimationFrame(requestRef.current);
-      }
-      const x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-      const y = e.clientY || (e.touches && e.touches[0].clientY) || 0;
-      document.documentElement.style.setProperty('--mouse-x', `${x}px`);
-      document.documentElement.style.setProperty('--mouse-y', `${y}px`);
-    };
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DORÉ | Boutique de Assados</title>
     
-    // { passive: true } garante a alta performance no mobile
-    window.addEventListener('mousemove', handleMove, { passive: true });
-    window.addEventListener('touchmove', handleMove, { passive: true });
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    return () => {
-      cancelAnimationFrame(requestRef.current);
-      window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('touchmove', handleMove);
-    };
-  }, []);
-
-  // --- MOTOR DE ANIMAÇÃO DE SCROLL (Intersection Observer) ---
-  useEffect(() => {
-    if (stage === 'shop') {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-          }
-        });
-      }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
-
-      const elements = document.querySelectorAll('.reveal');
-      elements.forEach(el => observer.observe(el));
-
-      return () => elements.forEach(el => observer.unobserve(el));
-    }
-  }, [stage]);
-
-  // Bloquear rolagem do fundo quando o carrinho abre
-  useEffect(() => {
-    if (isCartOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => { document.body.style.overflow = 'unset'; }
-  }, [isCartOpen]);
-
-  const addToCart = (product) => {
-    if (window.navigator.vibrate) window.navigator.vibrate([30]);
-    setCart(prev => {
-      const exists = prev.find(i => i.id === product.id);
-      if (exists) return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
-      return [...prev, { ...product, qty: 1 }];
-    });
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     
-    // Notificação Silenciosa de Adição
-    setToast(`${product.name} selecionado`);
-    setTimeout(() => setToast(null), 3000);
-  };
+    <!-- Babel (Tradutor de JSX para o Navegador) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  const removeFromCart = (id) => {
-    setCart(prev => prev.filter(item => item.id !== id));
-  };
-
-  const subtotal = useMemo(() => cart.reduce((acc, i) => acc + (i.price * i.qty), 0), [cart]);
-  const freightValue = cart.length > 0 ? BAIRROS_FRETE[bairro] : 0;
-  const total = subtotal + freightValue;
-
-  // --- INTERFACES ---
-
-  // 1. GATE SENSORIAL (Portão com Fundo Escuro, Lanterna e Novo Monograma)
-  if (stage === 'gate') {
-    return (
-      <div id="luxury-gate" className="fixed inset-0 flex flex-col items-center justify-center z-[9999] overflow-hidden">
-        
-        {/* A textura do monograma só aparece onde a luz passa */}
-        <div id="spotlight-wrapper">
-          <div className="pattern-layer" style={{ backgroundImage: `url(${LOGO_URL})` }}></div>
-        </div>
-        
-        <div className="relative z-20 text-center flex flex-col items-center px-6 pointer-events-none">
-          <div className="mb-16 fade-in-up pointer-events-auto">
-            <div className="absolute inset-0 bg-[#D4AF37] blur-[140px] opacity-15"></div>
-            <img src={LOGO_URL} alt="DORÉ" className="h-40 md:h-64 relative z-10 drop-shadow-[0_0_20px_rgba(212,175,55,0.4)]" />
-          </div>
-          
-          <div className="flex flex-col items-center gap-6 fade-in-up delay-1 pointer-events-auto">
-            <div className="w-[1px] h-20 bg-gradient-to-b from-transparent via-[#D4AF37] to-transparent opacity-50"></div>
-            <button 
-              onClick={() => {
-                if (window.navigator.vibrate) window.navigator.vibrate([60, 40, 60]);
-                setStage('shop');
-              }}
-              className="group relative px-16 py-6 border border-[#D4AF37]/40 bg-black/40 backdrop-blur-md text-[#D4AF37] text-[11px] tracking-[0.8em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black hover:scale-105"
-            >
-              <span className="relative z-10 font-bold drop-shadow-md">Toque para Iniciar</span>
-              <div className="absolute inset-0 bg-[#D4AF37] translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
-            </button>
-          </div>
-        </div>
-
-        <style>{`
-          /* Fundo Totalmente Escuro */
-          #luxury-gate { position: fixed; inset: 0; background-color: #050505; }
-          
-          #spotlight-wrapper { 
-            position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden;
-            background: radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), rgba(212, 175, 55, 0.18) 0%, transparent 80%); 
-            -webkit-mask-image: radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), black 10%, rgba(0,0,0,0.2) 60%, transparent 100%); 
-            mask-image: radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), black 10%, rgba(0,0,0,0.2) 60%, transparent 100%); 
-          }
-          
-          .pattern-layer { 
-            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; 
-            background-size: clamp(80px, 12vw, 150px); background-repeat: repeat; transform: rotate(-15deg); 
-            opacity: 0.35; filter: grayscale(1) brightness(1.3) contrast(1.2); mix-blend-mode: screen; 
-          }
-          
-          @keyframes fadeInUpFixed { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
-          .fade-in-up { animation: fadeInUpFixed 1.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
-          .delay-1 { animation-delay: 0.5s; }
-        `}</style>
-      </div>
-    );
-  }
-
-  // 2. LOJA BOUTIQUE
-  return (
-    <div className="min-h-screen slate-bg text-[#F4F1EA] font-sans selection:bg-[#D4AF37] selection:text-black">
-      
-      {/* Overlay de Textura Cimento Queimado */}
-      <div className="fixed inset-0 opacity-40 pointer-events-none noise-bg mix-blend-soft-light z-0"></div>
-
-      {/* TOAST DE NOTIFICAÇÃO */}
-      <div className={`fixed top-28 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 transform ${toast ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none'}`}>
-        <div className="bg-black/80 backdrop-blur-md border border-[#D4AF37]/40 text-[#D4AF37] px-6 py-3 rounded-full text-[10px] tracking-widest uppercase flex items-center gap-3 shadow-[0_10px_25px_rgba(0,0,0,0.5)]">
-          <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse"></div>
-          {toast}
-        </div>
-      </div>
-
-      {/* CABEÇALHO */}
-      <nav className="fixed top-0 w-full z-40 bg-black/60 backdrop-blur-2xl border-b border-white/5 shadow-2xl">
-        <div className="max-w-6xl mx-auto px-6 h-24 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <img src={LOGO_URL} alt="DORÉ" className="h-10 md:h-12 drop-shadow-lg" />
-            <div className="flex flex-col border-l border-white/10 pl-4">
-              <span className="text-[10px] tracking-[0.3em] uppercase text-[#D4AF37] font-semibold leading-tight text-shadow-glow">Boutique</span>
-              <span className="text-[8px] tracking-[0.4em] uppercase opacity-40">de Assados</span>
-            </div>
-          </div>
-          
-          <button onClick={() => setIsCartOpen(true)} className="flex items-center gap-6 group">
-            <div className="text-right hidden sm:block">
-              <p className="text-[9px] tracking-[0.3em] uppercase opacity-30 group-hover:opacity-100 transition-opacity">Sua Reserva</p>
-              <p className="text-sm font-mono text-[#D4AF37]">R$ {total.toFixed(2)}</p>
-            </div>
-            <div className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#D4AF37] group-hover:bg-[#D4AF37]/5 transition-all relative">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
-              {cart.length > 0 && <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#D4AF37] rounded-full shadow-[0_0_10px_#D4AF37] animate-pulse"></span>}
-            </div>
-          </button>
-        </div>
-      </nav>
-
-      <main className="pt-40 pb-32 px-6 max-w-6xl mx-auto relative z-10">
-        
-        {/* HERO */}
-        <header className="text-center mb-32 reveal visible">
-          <span className="text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase mb-6 block font-light">Chapecó • Produção Artesanal</span>
-          <h2 className="text-5xl md:text-8xl font-serif leading-tight mb-10 tracking-tight text-white drop-shadow-2xl">
-            Crosta de Ouro.<br/>
-            <span className="italic text-white/30 font-light">Suculência Preservada.</span>
-          </h2>
-          <p className="text-white/40 font-light max-w-2xl mx-auto leading-relaxed text-lg italic">
-            "A arte da rotisserie entregue com exclusividade. Vinte e quatro horas de infusão para o momento que você merece."
-          </p>
-        </header>
-
-        {/* 01. PROTEÍNAS */}
-        <section className="mb-40 reveal">
-          <div className="flex items-center gap-6 mb-16">
-            <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">01</span>
-            <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">O Assado Principal</h3>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-12">
-            {PRODUCTS.frangos.map(item => (
-              <div key={item.id} className="group glass-panel p-3 overflow-hidden rounded-[3rem]">
-                <div className="aspect-[16/10] rounded-[2.5rem] overflow-hidden mb-8 relative">
-                  {/* Imagens com Lazy Loading nativo para performance */}
-                  <img src={item.img} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 opacity-80 group-hover:opacity-100 mix-blend-luminosity hover:mix-blend-normal" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-60"></div>
-                </div>
-                <div className="px-8 pb-10 text-center md:text-left">
-                  <div className="flex flex-col md:flex-row justify-between items-baseline mb-6">
-                    <h4 className="text-4xl font-serif text-[#D4AF37] mb-2 md:mb-0">{item.name}</h4>
-                    <span className="font-mono text-xl opacity-60">R$ {item.price}</span>
-                  </div>
-                  <p className="text-sm text-white/40 font-light mb-10 h-16 leading-relaxed max-w-sm">{item.desc}</p>
-                  <button 
-                    onClick={() => addToCart(item)}
-                    className="w-full py-6 border border-[#D4AF37]/30 bg-white/5 rounded-2xl text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-700 font-bold backdrop-blur-md"
-                  >
-                    Selecionar Unidade
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ÁREA SENSORIAL */}
-        <section className="mb-40 reveal">
-          <div className="glass-panel overflow-hidden rounded-[3rem] grid lg:grid-cols-2 items-center">
-            <div className="p-12 md:p-20 order-2 lg:order-1">
-              <span className="text-[#D4AF37] text-[10px] tracking-[0.5em] uppercase mb-8 block">A Experiência DORÉ</span>
-              <h3 className="text-4xl md:text-5xl font-serif mb-8 leading-tight text-white">O Ritual do<br/><span className="italic text-[#D4AF37]">Desejo.</span></h3>
-              <p className="text-white/40 font-light leading-relaxed mb-10 text-lg">
-                Não é apenas uma entrega, é um protocolo de luxo. Receba o seu assado em embalagem térmica boutique, projetada para manter a crosta sonora e os sucos exatamente como saíram do fogo.
-              </p>
-              <div className="flex gap-10">
-                <div>
-                  <span className="block text-[#D4AF37] font-mono text-2xl mb-1 drop-shadow-md">24h</span>
-                  <span className="text-[9px] uppercase tracking-widest opacity-40">Infusão</span>
-                </div>
-                <div className="w-[1px] h-12 bg-white/10"></div>
-                <div>
-                  <span className="block text-[#D4AF37] font-mono text-2xl mb-1 drop-shadow-md">85°C</span>
-                  <span className="text-[9px] uppercase tracking-widest opacity-40">Ponto Perfeito</span>
-                </div>
-              </div>
-            </div>
-            <div className="aspect-square lg:aspect-auto lg:h-[600px] overflow-hidden order-1 lg:order-2 relative group">
-              <img src={SENSORIAL_IMG} alt="Sensorial Assado" loading="lazy" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-1000 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent lg:block hidden"></div>
-            </div>
-          </div>
-        </section>
-
-        {/* 02. COMPLEMENTOS */}
-        <section className="mb-40 reveal">
-          <div className="flex items-center gap-6 mb-16">
-            <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">02</span>
-            <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">Complementos Premium</h3>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-10">
-            {PRODUCTS.farofas.map(item => (
-              <div key={item.id} className="glass-panel p-12 flex flex-col md:flex-row justify-between items-center group rounded-[2.5rem]">
-                <div className="max-w-[80%] text-center md:text-left mb-6 md:mb-0">
-                  <h4 className="text-2xl font-serif mb-3 text-[#F4F1EA]">{item.name}</h4>
-                  <p className="text-xs text-white/30 leading-relaxed font-light">{item.desc}</p>
-                </div>
-                <div className="text-center md:text-right">
-                  <p className="font-mono text-[#D4AF37] text-lg mb-6">R$ {item.price}</p>
-                  <button 
-                    onClick={() => addToCart(item)}
-                    className="w-14 h-14 rounded-full border border-white/10 bg-white/5 flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-all duration-500 hover:scale-110 backdrop-blur-md"
-                  >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 5v14M5 12h14"/></svg>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 03. MOLHOS */}
-        <section className="mb-20 reveal">
-          <div className="flex items-center gap-6 mb-16">
-            <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">03</span>
-            <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">Alquimia de Sabores</h3>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {PRODUCTS.molhos.map(item => (
-              <div key={item.id} className="glass-panel p-10 flex flex-col justify-between rounded-[2rem] text-center md:text-left">
-                <div>
-                  <h4 className="text-xl font-serif mb-4 text-[#F4F1EA]">{item.name}</h4>
-                  <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mb-10 leading-relaxed h-8">{item.desc}</p>
-                </div>
-                <div className="flex justify-between items-center pt-6 border-t border-white/5">
-                  <span className="font-mono text-[#D4AF37] text-sm">R$ {item.price}</span>
-                  <button 
-                    onClick={() => addToCart(item)}
-                    className="text-[10px] uppercase tracking-[0.3em] border-b border-white/10 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all pb-1 font-bold"
-                  >
-                    Adicionar
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </main>
-
-      {/* CARRINHO DE CONCIERGE (Checkout Completo Restaurado) */}
-      <div className={`fixed inset-0 z-50 transition-all duration-700 ${isCartOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsCartOpen(false)}></div>
-        
-        <div className={`absolute top-0 right-0 h-full w-full max-w-md bg-[#0a0a0a]/95 backdrop-blur-[40px] border-l border-white/10 shadow-[-20px_0_50px_rgba(0,0,0,0.8)] flex flex-col transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-          
-          <div className="p-8 border-b border-white/10 flex justify-between items-center bg-black/50">
-            <h4 className="text-2xl font-serif tracking-[0.1em] text-[#D4AF37]">Concierge de Reserva</h4>
-            <button onClick={() => setIsCartOpen(false)} className="opacity-40 hover:opacity-100 hover:text-[#D4AF37] transition-colors">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-8 space-y-10">
-            {cart.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center opacity-30 text-center">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mb-4 text-[#D4AF37]"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
-                <p className="text-[10px] uppercase tracking-[0.5em] font-light text-[#D4AF37]">Sua lista está vazia</p>
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {/* Lista de Itens */}
-                <div className="space-y-6 border-b border-white/10 pb-8">
-                  {cart.map(item => (
-                    <div key={item.id} className="flex justify-between items-center group animate-fade-in">
-                      <div className="max-w-[70%]">
-                        <p className="font-serif text-lg mb-1 text-[#F4F1EA] group-hover:text-[#D4AF37] transition-colors">{item.name}</p>
-                        <p className="text-[10px] font-mono opacity-40 tracking-[0.1em] uppercase">{item.qty} x R$ {item.price}</p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="font-mono text-[#D4AF37] text-sm">R$ {item.price * item.qty}</span>
-                        <button onClick={() => removeFromCart(item.id)} className="text-white/20 hover:text-red-500 transition-colors p-2">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Formulário de Concierge de Entrega (RESTAURADO E ATIVO) */}
-                <div className="space-y-6">
-                  <h5 className="text-[10px] uppercase tracking-[0.4em] text-[#D4AF37] font-bold">Detalhes da Entrega</h5>
-                  
-                  <div className="space-y-4">
-                    {/* Agendamento de Horário */}
-                    <div className="flex flex-col gap-2">
-                      <label className="text-[9px] uppercase tracking-widest text-white/40 pl-2">Janela de Entrega</label>
-                      <select 
-                        value={horario} 
-                        onChange={(e) => setHorario(e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors appearance-none"
-                      >
-                        {HORARIOS_ENTREGA.map(h => <option key={h} value={h} className="bg-neutral-900">{h}</option>)}
-                      </select>
-                    </div>
-
-                    {/* Bairro Logística */}
-                    <div className="flex flex-col gap-2">
-                      <label className="text-[9px] uppercase tracking-widest text-white/40 pl-2">Bairro (Chapecó)</label>
-                      <select 
-                        value={bairro} 
-                        onChange={(e) => setBairro(e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors appearance-none"
-                      >
-                        {Object.keys(BAIRROS_FRETE).map(b => <option key={b} value={b} className="bg-neutral-900">{b}</option>)}
-                      </select>
-                    </div>
-
-                    {/* Instruções Dinâmicas */}
-                    <div className="flex flex-col gap-2">
-                      <label className="text-[9px] uppercase tracking-widest text-white/40 pl-2">Instruções para o Motoboy</label>
-                      <input 
-                        type="text" 
-                        value={instrucoes}
-                        onChange={(e) => setInstrucoes(e.target.value)}
-                        placeholder="Ex: Condomínio, Bloco B, deixar na portaria..." 
-                        className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors placeholder:text-white/20"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {cart.length > 0 && (
-            <div className="p-8 border-t border-white/10 bg-black/60 backdrop-blur-xl space-y-6 shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
-              <div className="space-y-3">
-                <div className="flex justify-between text-[10px] text-white/40 tracking-[0.2em] uppercase">
-                  <span>Subtotal</span>
-                  <span className="font-mono text-white">R$ {subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-[10px] text-white/40 tracking-[0.2em] uppercase items-center">
-                  <span className="flex items-center gap-2">Frete Inteligente <div className="w-1 h-1 bg-[#D4AF37] rounded-full animate-ping"></div></span>
-                  <span className="font-mono text-white">R$ {freightValue.toFixed(2)}</span>
-                </div>
-              </div>
-              
-              <div className="pt-6 flex justify-between items-baseline border-t border-white/10">
-                <span className="text-3xl font-serif text-[#D4AF37]">Total</span>
-                <span className="text-2xl font-mono text-white">R$ {total.toFixed(2)}</span>
-              </div>
-              
-              <button 
-                className="w-full bg-[#D4AF37] text-[#0D0C0A] py-6 rounded-[2rem] font-bold uppercase tracking-[0.3em] text-[10px] hover:bg-[#F4F1EA] transition-all duration-500 mt-4 shadow-[0_10px_30px_rgba(212,175,55,0.2)] hover:shadow-[0_15px_40px_rgba(212,175,55,0.4)]"
-                onClick={() => {
-                  const itemsMsg = cart.map(i => `• ${i.name} (${i.qty}x)`).join('%0A');
-                  const finalMsg = `Olá, Concierge DORÉ! Gostaria de confirmar minha reserva.%0A%0A*📦 Meu Pedido:*%0A${itemsMsg}%0A%0A*⏱ Horário Solicitado:*%0A${horario}%0A%0A*📍 Local da Entrega:*%0ABairro: ${bairro}%0AInstruções: ${instrucoes || 'Nenhuma'}%0A%0A*💳 Total (com frete):* R$ ${total.toFixed(2)}%0A%0A_Aguardando chave Pix e confirmação._`;
-                  window.open(`https://wa.me/5549999999999?text=${finalMsg}`);
-                }}
-              >
-                Confirmar Reserva (WhatsApp)
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <style>{`
+    <style>
+        /* CSS Global e Utilitários de Luxo */
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap');
         
         :root { --mouse-x: 50%; --mouse-y: 50%; }
@@ -519,9 +26,9 @@ export default function App() {
           font-family: 'Inter', sans-serif; 
           margin: 0; 
           overflow-x: hidden;
+          -webkit-font-smoothing: antialiased;
         }
 
-        /* Fundo Cimento Queimado (Slate) */
         .slate-bg {
           background-color: #0D0C0A;
           background-image: 
@@ -534,7 +41,6 @@ export default function App() {
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
         
-        /* Efeito de Vidro (Glassmorphism) */
         .glass-panel {
           background: rgba(255, 255, 255, 0.02);
           backdrop-filter: blur(20px);
@@ -553,7 +59,6 @@ export default function App() {
 
         .text-shadow-glow { text-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
 
-        /* Animação de Scroll Nativa (Otimizada) */
         .reveal { 
           opacity: 0; 
           transform: translateY(60px); 
@@ -565,13 +70,11 @@ export default function App() {
           transform: translateY(0); 
         }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0D0C0A; }
         ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
         
-        /* Limpeza de Formatação padrão de Selects e Inputs */
         select { 
           appearance: none; 
           -webkit-appearance: none; 
@@ -581,7 +84,426 @@ export default function App() {
           background-size: 1em;
         }
         input::placeholder { color: rgba(255,255,255,0.2); }
-      `}</style>
-    </div>
-  );
-}
+    </style>
+</head>
+<body class="slate-bg">
+    
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Extraindo os Hooks do React injetado via CDN
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        const LOGO_URL = "https://alisachapeco.com.br/assets/images/image19.png?v=5f40d70b";
+        const SENSORIAL_IMG = "https://alisachapeco.com.br/assets/images/image21.png?v=e9c990c3";
+
+        const PRODUCTS = {
+          frangos: [
+            { 
+              id: 'f1', name: 'DORÉ Clássico', 
+              desc: 'Assado lentamente em baixa temperatura. Crosta de ouro e suculência preservada.', 
+              price: 115, img: 'https://alisachapeco.com.br/assets/images/image20.jpg?v=e9c990c3' 
+            },
+            { 
+              id: 'f2', name: 'DORÉ Recheado', 
+              desc: 'Frango nobre recheado com farofa artesanal de miúdos, sálvia e especiarias.', 
+              price: 145, img: 'https://alisachapeco.com.br/assets/images/image18.jpg?v=e9c990c3' 
+            }
+          ],
+          farofas: [
+            { id: 'a1', name: 'Farofa de Pistache & Bacon', desc: 'Pistaches selecionados, bacon artesanal e manteiga noisette.', price: 42 },
+            { id: 'a2', name: 'Farofa Panko Gourmet', desc: 'Crocância extrema finalizada com autêntica manteiga de garrafa.', price: 35 }
+          ],
+          molhos: [
+            { id: 'm1', name: 'Aioli de Alho Negro', desc: 'Sabor umami profundo e notas adocicadas sutis.', price: 18 },
+            { id: 'm2', name: 'Chimichurri da Boutique', desc: 'Ervas frescas e azeite extra virgem de primeira prensa.', price: 15 },
+            { id: 'm3', name: 'Mostarda & Mel Silvestre', desc: 'O equilíbrio perfeito e nobre entre picância e doçura.', price: 16 }
+          ]
+        };
+
+        const BAIRROS_FRETE = {
+          'Centro': 12, 'Efapi': 20, 'Santa Maria': 15,
+          'Passo dos Fortes': 15, 'Bela Vista': 12, 'Outros': 18
+        };
+
+        const HORARIOS_ENTREGA = [
+          'Domingo | 11:00 - 11:30', 'Domingo | 11:30 - 12:00',
+          'Domingo | 12:00 - 12:30', 'Domingo | 12:30 - 13:00'
+        ];
+
+        function App() {
+          const [stage, setStage] = useState('gate');
+          const [cart, setCart] = useState([]);
+          const [isCartOpen, setIsCartOpen] = useState(false);
+          const [bairro, setBairro] = useState('Centro');
+          const [horario, setHorario] = useState(HORARIOS_ENTREGA[0]);
+          const [instrucoes, setInstrucoes] = useState('');
+          const [toast, setToast] = useState(null);
+
+          const requestRef = useRef();
+          const isIdle = useRef(true);
+
+          const animateSpotlight = (time) => {
+            if (isIdle.current) {
+              const speed = 0.0012;
+              const centerX = window.innerWidth / 2;
+              const centerY = window.innerHeight / 2;
+              const rx = window.innerWidth * 0.35; 
+              const ry = window.innerHeight * 0.25; 
+              const x = centerX + rx * Math.sin(time * speed);
+              const y = centerY + ry * Math.sin(time * speed * 2);
+
+              document.documentElement.style.setProperty('--mouse-x', `${x}px`);
+              document.documentElement.style.setProperty('--mouse-y', `${y}px`);
+              requestRef.current = requestAnimationFrame(animateSpotlight);
+            }
+          };
+
+          useEffect(() => {
+            requestRef.current = requestAnimationFrame(animateSpotlight);
+
+            const handleMove = (e) => {
+              if (isIdle.current) {
+                isIdle.current = false;
+                cancelAnimationFrame(requestRef.current);
+              }
+              const x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+              const y = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+              document.documentElement.style.setProperty('--mouse-x', `${x}px`);
+              document.documentElement.style.setProperty('--mouse-y', `${y}px`);
+            };
+            
+            window.addEventListener('mousemove', handleMove, { passive: true });
+            window.addEventListener('touchmove', handleMove, { passive: true });
+            
+            return () => {
+              cancelAnimationFrame(requestRef.current);
+              window.removeEventListener('mousemove', handleMove);
+              window.removeEventListener('touchmove', handleMove);
+            };
+          }, []);
+
+          useEffect(() => {
+            if (stage === 'shop') {
+              const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                  if (entry.isIntersecting) entry.target.classList.add('visible');
+                });
+              }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+              const elements = document.querySelectorAll('.reveal');
+              elements.forEach(el => observer.observe(el));
+              return () => elements.forEach(el => observer.unobserve(el));
+            }
+          }, [stage]);
+
+          useEffect(() => {
+            document.body.style.overflow = isCartOpen ? 'hidden' : 'unset';
+            return () => { document.body.style.overflow = 'unset'; }
+          }, [isCartOpen]);
+
+          const addToCart = (product) => {
+            if (window.navigator.vibrate) window.navigator.vibrate([30]);
+            setCart(prev => {
+              const exists = prev.find(i => i.id === product.id);
+              if (exists) return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
+              return [...prev, { ...product, qty: 1 }];
+            });
+            setToast(`${product.name} selecionado`);
+            setTimeout(() => setToast(null), 3000);
+          };
+
+          const removeFromCart = (id) => setCart(prev => prev.filter(item => item.id !== id));
+
+          const subtotal = useMemo(() => cart.reduce((acc, i) => acc + (i.price * i.qty), 0), [cart]);
+          const freightValue = cart.length > 0 ? BAIRROS_FRETE[bairro] : 0;
+          const total = subtotal + freightValue;
+
+          if (stage === 'gate') {
+            return (
+              <div className="fixed inset-0 flex flex-col items-center justify-center z-[9999] overflow-hidden" style={{ backgroundColor: '#050505' }}>
+                <div style={{ 
+                  position: 'absolute', inset: 0, zIndex: 5, pointerEvents: 'none', overflow: 'hidden',
+                  background: 'radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), rgba(212, 175, 55, 0.18) 0%, transparent 80%)',
+                  WebkitMaskImage: 'radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), black 10%, rgba(0,0,0,0.2) 60%, transparent 100%)'
+                }}>
+                  <div style={{
+                    position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%',
+                    backgroundSize: 'clamp(80px, 12vw, 150px)', backgroundRepeat: 'repeat', transform: 'rotate(-15deg)',
+                    opacity: 0.35, filter: 'grayscale(1) brightness(1.3) contrast(1.2)', mixBlendMode: 'screen',
+                    backgroundImage: `url(${LOGO_URL})`
+                  }}></div>
+                </div>
+                
+                <div className="relative z-20 text-center flex flex-col items-center px-6 pointer-events-none">
+                  <div className="mb-16 pointer-events-auto" style={{ animation: 'fadeInUpFixed 1.5s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
+                    <div className="absolute inset-0 bg-[#D4AF37] blur-[140px] opacity-15"></div>
+                    <img src={LOGO_URL} alt="DORÉ" className="h-40 md:h-64 relative z-10 drop-shadow-[0_0_20px_rgba(212,175,55,0.4)]" />
+                  </div>
+                  
+                  <div className="flex flex-col items-center gap-6 pointer-events-auto" style={{ animation: 'fadeInUpFixed 1.5s cubic-bezier(0.16, 1, 0.3, 1) both', animationDelay: '0.5s' }}>
+                    <div className="w-[1px] h-20 bg-gradient-to-b from-transparent via-[#D4AF37] to-transparent opacity-50"></div>
+                    <button 
+                      onClick={() => {
+                        if (window.navigator.vibrate) window.navigator.vibrate([60, 40, 60]);
+                        setStage('shop');
+                      }}
+                      className="group relative px-16 py-6 border border-[#D4AF37]/40 bg-black/40 backdrop-blur-md text-[#D4AF37] text-[11px] tracking-[0.8em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black hover:scale-105"
+                    >
+                      <span className="relative z-10 font-bold drop-shadow-md">Toque para Iniciar</span>
+                      <div className="absolute inset-0 bg-[#D4AF37] translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                    </button>
+                  </div>
+                </div>
+                <style>{`@keyframes fadeInUpFixed { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }`}</style>
+              </div>
+            );
+          }
+
+          return (
+            <div className="min-h-screen text-[#F4F1EA] font-sans selection:bg-[#D4AF37] selection:text-black">
+              <div className="fixed inset-0 opacity-40 pointer-events-none noise-bg mix-blend-soft-light z-0"></div>
+
+              <div className={`fixed top-28 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 transform ${toast ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none'}`}>
+                <div className="bg-black/80 backdrop-blur-md border border-[#D4AF37]/40 text-[#D4AF37] px-6 py-3 rounded-full text-[10px] tracking-widest uppercase flex items-center gap-3 shadow-[0_10px_25px_rgba(0,0,0,0.5)]">
+                  <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse"></div>
+                  {toast}
+                </div>
+              </div>
+
+              <nav className="fixed top-0 w-full z-40 bg-black/60 backdrop-blur-2xl border-b border-white/5 shadow-2xl">
+                <div className="max-w-6xl mx-auto px-6 h-24 flex justify-between items-center">
+                  <div className="flex items-center gap-4">
+                    <img src={LOGO_URL} alt="DORÉ" className="h-10 md:h-12 drop-shadow-lg" />
+                    <div className="flex flex-col border-l border-white/10 pl-4">
+                      <span className="text-[10px] tracking-[0.3em] uppercase text-[#D4AF37] font-semibold leading-tight text-shadow-glow">Boutique</span>
+                      <span className="text-[8px] tracking-[0.4em] uppercase opacity-40">de Assados</span>
+                    </div>
+                  </div>
+                  <button onClick={() => setIsCartOpen(true)} className="flex items-center gap-6 group">
+                    <div className="text-right hidden sm:block">
+                      <p className="text-[9px] tracking-[0.3em] uppercase opacity-30 group-hover:opacity-100 transition-opacity">Sua Reserva</p>
+                      <p className="text-sm font-mono text-[#D4AF37]">R$ {total.toFixed(2)}</p>
+                    </div>
+                    <div className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#D4AF37] group-hover:bg-[#D4AF37]/5 transition-all relative">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
+                      {cart.length > 0 && <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#D4AF37] rounded-full shadow-[0_0_10px_#D4AF37] animate-pulse"></span>}
+                    </div>
+                  </button>
+                </div>
+              </nav>
+
+              <main className="pt-40 pb-32 px-6 max-w-6xl mx-auto relative z-10">
+                <header className="text-center mb-32 reveal">
+                  <span className="text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase mb-6 block font-light">Chapecó • Produção Artesanal</span>
+                  <h2 className="text-5xl md:text-8xl font-serif leading-tight mb-10 tracking-tight text-white drop-shadow-2xl">
+                    Crosta de Ouro.<br/>
+                    <span className="italic text-white/30 font-light">Suculência Preservada.</span>
+                  </h2>
+                  <p className="text-white/40 font-light max-w-2xl mx-auto leading-relaxed text-lg italic">
+                    "A arte da rotisserie entregue com exclusividade. Vinte e quatro horas de infusão para o momento que você merece."
+                  </p>
+                </header>
+
+                <section className="mb-40 reveal">
+                  <div className="flex items-center gap-6 mb-16">
+                    <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">01</span>
+                    <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">O Assado Principal</h3>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-12">
+                    {PRODUCTS.frangos.map(item => (
+                      <div key={item.id} className="group glass-panel p-3 overflow-hidden rounded-[3rem]">
+                        <div className="aspect-[16/10] rounded-[2.5rem] overflow-hidden mb-8 relative bg-black">
+                          <img src={item.img} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 opacity-80 group-hover:opacity-100 mix-blend-luminosity hover:mix-blend-normal" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-60"></div>
+                        </div>
+                        <div className="px-8 pb-10 text-center md:text-left">
+                          <div className="flex flex-col md:flex-row justify-between items-baseline mb-6">
+                            <h4 className="text-4xl font-serif text-[#D4AF37] mb-2 md:mb-0">{item.name}</h4>
+                            <span className="font-mono text-xl opacity-60">R$ {item.price}</span>
+                          </div>
+                          <p className="text-sm text-white/40 font-light mb-10 h-16 leading-relaxed max-w-sm">{item.desc}</p>
+                          <button onClick={() => addToCart(item)} className="w-full py-6 border border-[#D4AF37]/30 bg-white/5 rounded-2xl text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-700 font-bold backdrop-blur-md">
+                            Selecionar Unidade
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="mb-40 reveal">
+                  <div className="glass-panel overflow-hidden rounded-[3rem] grid lg:grid-cols-2 items-center">
+                    <div className="p-12 md:p-20 order-2 lg:order-1">
+                      <span className="text-[#D4AF37] text-[10px] tracking-[0.5em] uppercase mb-8 block">A Experiência DORÉ</span>
+                      <h3 className="text-4xl md:text-5xl font-serif mb-8 leading-tight text-white">O Ritual do<br/><span className="italic text-[#D4AF37]">Desejo.</span></h3>
+                      <p className="text-white/40 font-light leading-relaxed mb-10 text-lg">
+                        Não é apenas uma entrega, é um protocolo de luxo. Receba o seu assado em embalagem térmica boutique, projetada para manter a crosta sonora e os sucos exatamente como saíram do fogo.
+                      </p>
+                      <div className="flex gap-10">
+                        <div>
+                          <span className="block text-[#D4AF37] font-mono text-2xl mb-1 drop-shadow-md">24h</span>
+                          <span className="text-[9px] uppercase tracking-widest opacity-40">Infusão</span>
+                        </div>
+                        <div className="w-[1px] h-12 bg-white/10"></div>
+                        <div>
+                          <span className="block text-[#D4AF37] font-mono text-2xl mb-1 drop-shadow-md">85°C</span>
+                          <span className="text-[9px] uppercase tracking-widest opacity-40">Ponto Perfeito</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="aspect-square lg:aspect-auto lg:h-[600px] overflow-hidden order-1 lg:order-2 relative group bg-black">
+                      <img src={SENSORIAL_IMG} alt="Sensorial Assado" loading="lazy" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-1000 group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent lg:block hidden"></div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="mb-40 reveal">
+                  <div className="flex items-center gap-6 mb-16">
+                    <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">02</span>
+                    <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">Complementos Premium</h3>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-10">
+                    {PRODUCTS.farofas.map(item => (
+                      <div key={item.id} className="glass-panel p-12 flex flex-col md:flex-row justify-between items-center group rounded-[2.5rem]">
+                        <div className="max-w-[80%] text-center md:text-left mb-6 md:mb-0">
+                          <h4 className="text-2xl font-serif mb-3 text-[#F4F1EA]">{item.name}</h4>
+                          <p className="text-xs text-white/30 leading-relaxed font-light">{item.desc}</p>
+                        </div>
+                        <div className="text-center md:text-right">
+                          <p className="font-mono text-[#D4AF37] text-lg mb-6">R$ {item.price}</p>
+                          <button onClick={() => addToCart(item)} className="w-14 h-14 rounded-full border border-white/10 bg-white/5 flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-all duration-500 hover:scale-110 backdrop-blur-md">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 5v14M5 12h14"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="mb-20 reveal">
+                  <div className="flex items-center gap-6 mb-16">
+                    <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">03</span>
+                    <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">Alquimia de Sabores</h3>
+                  </div>
+                  <div className="grid md:grid-cols-3 gap-8">
+                    {PRODUCTS.molhos.map(item => (
+                      <div key={item.id} className="glass-panel p-10 flex flex-col justify-between rounded-[2rem] text-center md:text-left">
+                        <div>
+                          <h4 className="text-xl font-serif mb-4 text-[#F4F1EA]">{item.name}</h4>
+                          <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mb-10 leading-relaxed h-8">{item.desc}</p>
+                        </div>
+                        <div className="flex justify-between items-center pt-6 border-t border-white/5">
+                          <span className="font-mono text-[#D4AF37] text-sm">R$ {item.price}</span>
+                          <button onClick={() => addToCart(item)} className="text-[10px] uppercase tracking-[0.3em] border-b border-white/10 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all pb-1 font-bold">
+                            Adicionar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </main>
+
+              {/* CARRINHO DE CONCIERGE */}
+              <div className={`fixed inset-0 z-50 transition-all duration-700 ${isCartOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsCartOpen(false)}></div>
+                <div className={`absolute top-0 right-0 h-full w-full max-w-md bg-[#0a0a0a]/95 backdrop-blur-[40px] border-l border-white/10 shadow-[-20px_0_50px_rgba(0,0,0,0.8)] flex flex-col transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                  <div className="p-8 border-b border-white/10 flex justify-between items-center bg-black/50">
+                    <h4 className="text-2xl font-serif tracking-[0.1em] text-[#D4AF37]">Concierge de Reserva</h4>
+                    <button onClick={() => setIsCartOpen(false)} className="opacity-40 hover:opacity-100 hover:text-[#D4AF37] transition-colors">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto p-8 space-y-10">
+                    {cart.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center opacity-30 text-center">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mb-4 text-[#D4AF37]"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
+                        <p className="text-[10px] uppercase tracking-[0.5em] font-light text-[#D4AF37]">Sua lista está vazia</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-8">
+                        <div className="space-y-6 border-b border-white/10 pb-8">
+                          {cart.map(item => (
+                            <div key={item.id} className="flex justify-between items-center group animate-fade-in">
+                              <div className="max-w-[70%]">
+                                <p className="font-serif text-lg mb-1 text-[#F4F1EA] group-hover:text-[#D4AF37] transition-colors">{item.name}</p>
+                                <p className="text-[10px] font-mono opacity-40 tracking-[0.1em] uppercase">{item.qty} x R$ {item.price}</p>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="font-mono text-[#D4AF37] text-sm">R$ {item.price * item.qty}</span>
+                                <button onClick={() => removeFromCart(item.id)} className="text-white/20 hover:text-red-500 transition-colors p-2">
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="space-y-6">
+                          <h5 className="text-[10px] uppercase tracking-[0.4em] text-[#D4AF37] font-bold">Detalhes da Entrega</h5>
+                          <div className="space-y-4">
+                            <div className="flex flex-col gap-2">
+                              <label className="text-[9px] uppercase tracking-widest text-white/40 pl-2">Janela de Entrega</label>
+                              <select value={horario} onChange={(e) => setHorario(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors appearance-none">
+                                {HORARIOS_ENTREGA.map(h => <option key={h} value={h} className="bg-neutral-900">{h}</option>)}
+                              </select>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              <label className="text-[9px] uppercase tracking-widest text-white/40 pl-2">Bairro (Chapecó)</label>
+                              <select value={bairro} onChange={(e) => setBairro(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors appearance-none">
+                                {Object.keys(BAIRROS_FRETE).map(b => <option key={b} value={b} className="bg-neutral-900">{b}</option>)}
+                              </select>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              <label className="text-[9px] uppercase tracking-widest text-white/40 pl-2">Instruções para o Motoboy</label>
+                              <input type="text" value={instrucoes} onChange={(e) => setInstrucoes(e.target.value)} placeholder="Ex: Condomínio, Bloco B..." className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors placeholder:text-white/20" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {cart.length > 0 && (
+                    <div className="p-8 border-t border-white/10 bg-black/60 backdrop-blur-xl space-y-6 shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-[10px] text-white/40 tracking-[0.2em] uppercase">
+                          <span>Subtotal</span>
+                          <span className="font-mono text-white">R$ {subtotal.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-[10px] text-white/40 tracking-[0.2em] uppercase items-center">
+                          <span className="flex items-center gap-2">Frete Inteligente <div className="w-1 h-1 bg-[#D4AF37] rounded-full animate-ping"></div></span>
+                          <span className="font-mono text-white">R$ {freightValue.toFixed(2)}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-6 flex justify-between items-baseline border-t border-white/10">
+                        <span className="text-3xl font-serif text-[#D4AF37]">Total</span>
+                        <span className="text-2xl font-mono text-white">R$ {total.toFixed(2)}</span>
+                      </div>
+                      
+                      <button onClick={() => {
+                          const itemsMsg = cart.map(i => `• ${i.name} (${i.qty}x)`).join('%0A');
+                          const finalMsg = `Olá, Concierge DORÉ! Gostaria de confirmar minha reserva.%0A%0A*📦 Meu Pedido:*%0A${itemsMsg}%0A%0A*⏱ Horário Solicitado:*%0A${horario}%0A%0A*📍 Local da Entrega:*%0ABairro: ${bairro}%0AInstruções: ${instrucoes || 'Nenhuma'}%0A%0A*💳 Total (com frete):* R$ ${total.toFixed(2)}%0A%0A_Aguardando chave Pix e confirmação._`;
+                          window.open(`https://wa.me/5549999999999?text=${finalMsg}`);
+                        }}
+                        className="w-full bg-[#D4AF37] text-[#0D0C0A] py-6 rounded-[2rem] font-bold uppercase tracking-[0.3em] text-[10px] hover:bg-[#F4F1EA] transition-all duration-500 mt-4 shadow-[0_10px_30px_rgba(212,175,55,0.2)] hover:shadow-[0_15px_40px_rgba(212,175,55,0.4)]"
+                      >
+                        Confirmar Reserva (WhatsApp)
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
