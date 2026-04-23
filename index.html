@@ -31,7 +31,7 @@
           -webkit-tap-highlight-color: transparent;
         }
 
-        /* Fundo Ember Glow (Brasa Viva Apple-Style) */
+        /* Fundo Ember Glow */
         .ambient-glow {
           position: fixed;
           top: 0; left: 0; width: 100vw; height: 100vh;
@@ -56,7 +56,7 @@
           100% { transform: translate(10%, 10%) scale(1.1); }
         }
 
-        /* Painéis de Vidro Principal */
+        /* Painéis e Cards de Vidro */
         .glass-panel {
           background: rgba(15, 15, 15, 0.4);
           backdrop-filter: blur(25px);
@@ -74,7 +74,6 @@
           box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.1) inset;
         }
 
-        /* Cartões App-like com Imagens */
         .app-card {
           background-color: #111;
           border: 1px solid rgba(255, 255, 255, 0.08);
@@ -116,10 +115,15 @@
         }
         .animate-pulse-soft { animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #030303; }
+        /* Scrollbars customizadas */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
+        
+        /* Oculta scrollbar no carrosel de datas (App-like) mas mantém funcional */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         
         select, input { 
           appearance: none; -webkit-appearance: none; 
@@ -129,7 +133,7 @@
     </style>
 </head>
 <body>
-    <!-- Fundo Animado Base -->
+    <!-- Fundo Animado -->
     <div class="ambient-glow">
         <div class="glow-orb glow-1"></div>
         <div class="glow-orb glow-2"></div>
@@ -149,10 +153,23 @@
           "https://alisachapeco.com.br/assets/images/image24.jpg?v=d9123dc9"
         ];
 
-        // --- BANCO DE DADOS COM IMAGENS ---
+        // --- SISTEMA DE RESERVAS & ESCASSEZ ---
+        const RESERVATION_SLOTS = [
+          { id: 'd0', week: 'Nesta Semana', date: 'Sexta, 24/04', stock: 0 },
+          { id: 'd1', week: 'Nesta Semana', date: 'Sábado, 25/04', stock: 0 },
+          { id: 'd2', week: 'Nesta Semana', date: 'Domingo, 26/04', stock: 2 },
+          { id: 'd3', week: 'Próxima Semana', date: 'Sexta, 01/05', stock: 1 },
+          { id: 'd4', week: 'Próxima Semana', date: 'Sábado, 02/05', stock: 2 },
+          { id: 'd5', week: 'Próxima Semana', date: 'Domingo, 03/05', stock: 2 }
+        ];
+
+        const HORARIOS_ENTREGA = ['11:00 - 11:30', '11:30 - 12:00', '12:00 - 12:30', '12:30 - 13:00'];
+        const BAIRROS_FRETE = { 'Centro': 12, 'Efapi': 20, 'Santa Maria': 15, 'Passo dos Fortes': 15, 'Bela Vista': 12, 'Outros': 18 };
+
+        // --- BANCO DE DADOS ---
         const BUILDER_DATA = {
           cortes: [
-            { id: 'c1', name: 'DORÉ Clássico', type: 'classico', desc: 'A ave em sua essência, sem recheio. Foco absoluto na suculência e na crosta.', price: 115, img: 'https://alisachapeco.com.br/assets/images/image20.jpg?v=e9c990c3' },
+            { id: 'c1', name: 'DORÉ Clássico', type: 'classico', desc: 'A ave em sua essência, sem recheio. Foco absoluto na suculência.', price: 115, img: 'https://alisachapeco.com.br/assets/images/image20.jpg?v=e9c990c3' },
             { id: 'c2', name: 'DORÉ Recheado', type: 'recheado', desc: 'Desossado parcialmente para abrigar nossos recheios artesanais.', price: 145, img: 'https://alisachapeco.com.br/assets/images/image18.jpg?v=e9c990c3' }
           ],
           marinadas: [
@@ -179,10 +196,6 @@
           ]
         };
 
-        const BAIRROS_FRETE = { 'Centro': 12, 'Efapi': 20, 'Santa Maria': 15, 'Passo dos Fortes': 15, 'Bela Vista': 12, 'Outros': 18 };
-        const HORARIOS_ENTREGA = ['Domingo | 11:00 - 11:30', 'Domingo | 11:30 - 12:00', 'Domingo | 12:00 - 12:30', 'Domingo | 12:30 - 13:00'];
-        const UNIDADES_RESTANTES = 7; 
-
         const triggerVibration = (pattern) => {
           if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
             window.navigator.vibrate(pattern);
@@ -195,8 +208,10 @@
           const [isCartOpen, setIsCartOpen] = useState(false);
           const [toast, setToast] = useState(null);
           
+          // Checkout Form
           const [bairro, setBairro] = useState('Centro');
           const [horario, setHorario] = useState(HORARIOS_ENTREGA[0]);
+          const [selectedDate, setSelectedDate] = useState(RESERVATION_SLOTS.find(s => s.stock > 0));
           const [instrucoes, setInstrucoes] = useState('');
 
           const [builder, setBuilder] = useState({ corte: null, marinada: null, recheio: null });
@@ -270,7 +285,6 @@
           const handleSelectCorte = (item) => {
             triggerVibration(15);
             setBuilder(prev => ({ ...prev, corte: item, recheio: item.type === 'classico' ? null : prev.recheio }));
-            // Funil Contínuo: Rola proativamente para o próximo passo
             setTimeout(() => document.getElementById('passo-marinada').scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
           };
 
@@ -311,8 +325,8 @@
 
             setCart(prev => [...prev, { ...customItem, qty: 1 }]);
             setBuilder({ corte: null, marinada: null, recheio: null }); 
-            showToast(`${customItem.name} adicionado à seleção.`);
-            setTimeout(() => setIsCartOpen(true), 600); // Abre o carrinho após adicionar com sucesso
+            showToast(`${customItem.name} reservado.`);
+            setTimeout(() => setIsCartOpen(true), 600); 
           };
 
           const addExtraToCart = (item) => {
@@ -358,7 +372,7 @@
           // --- GATE ---
           if (stage === 'gate') {
             return (
-              <div className="fixed inset-0 flex flex-col items-center justify-center z-[9999] overflow-hidden bg-[#030303]">
+              <div className="fixed inset-0 flex flex-col items-center justify-center z-[9999] overflow-hidden" style={{ backgroundColor: '#050505' }}>
                 <div style={{ position: 'absolute', inset: 0, zIndex: 5, pointerEvents: 'none', overflow: 'hidden', background: 'radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), rgba(212, 175, 55, 0.15) 0%, transparent 80%)', WebkitMaskImage: 'radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), black 10%, rgba(0,0,0,0.2) 60%, transparent 100%)' }}>
                   <div style={{ position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%', backgroundSize: 'clamp(80px, 12vw, 150px)', backgroundRepeat: 'repeat', transform: 'rotate(-15deg)', opacity: 0.25, filter: 'grayscale(1) brightness(1.3) contrast(1.2)', mixBlendMode: 'screen', backgroundImage: `url(${LOGO_URL})` }}></div>
                 </div>
@@ -370,7 +384,7 @@
                   <div className="flex flex-col items-center gap-6 pointer-events-auto" style={{ animation: 'fadeInUpFixed 1.5s cubic-bezier(0.16, 1, 0.3, 1) both', animationDelay: '0.5s' }}>
                     <div className="w-[1px] h-20 bg-gradient-to-b from-transparent via-[#D4AF37] to-transparent opacity-50"></div>
                     <button onClick={() => { triggerVibration([40, 30, 40]); setStage('shop'); }} className="group relative px-12 py-5 border border-[#D4AF37]/30 bg-black/40 backdrop-blur-md text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black rounded-full">
-                      <span className="relative z-10">Acessar</span>
+                      <span className="relative z-10 font-bold">Acessar Boutique</span>
                       <div className="absolute inset-0 bg-[#D4AF37] translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
                     </button>
                   </div>
@@ -384,7 +398,7 @@
           return (
             <div className="min-h-screen text-[#F4F1EA] font-sans selection:bg-[#D4AF37] selection:text-black pb-24 md:pb-0">
               
-              {/* TOAST NOTIFICATION (App-like) */}
+              {/* TOAST NOTIFICATION */}
               <div className={`fixed top-24 md:top-28 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 transform ${toast ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none'}`}>
                 <div className="bg-[#111111] border border-[#D4AF37]/30 text-[#F4F1EA] px-6 py-3 rounded-full text-[10px] tracking-widest uppercase flex items-center gap-3 shadow-[0_15px_30px_rgba(0,0,0,0.8)]">
                   <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse shadow-[0_0_5px_#D4AF37]"></div>
@@ -435,40 +449,35 @@
 
               <main className="pt-28 md:pt-32 pb-10 relative z-10">
                 
-                {/* 00. CAPA (HERO) */}
+                {/* 00. CAPA (HERO) c/ Escassez */}
                 <div className="max-w-6xl mx-auto px-6 mb-20 md:mb-32 reveal" id="capa">
                   
-                  {/* BADGE DE ESCASSEZ */}
                   <div className="flex justify-center lg:justify-start mb-6 md:mb-8">
                     <div className="inline-flex items-center gap-3 px-4 py-2 border border-[#D4AF37]/20 bg-[#D4AF37]/5 rounded-full backdrop-blur-md">
                       <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse-soft"></div>
                       <span className="text-[8px] md:text-[9px] uppercase tracking-[0.3em] text-[#D4AF37] font-semibold">
-                        Lote de Domingo: Restam {UNIDADES_RESTANTES} Unidades
+                        Apenas sob Encomenda • 7 Dias de Antecedência
                       </span>
                     </div>
                   </div>
 
-                  {/* GRID DO HERO */}
                   <div className="grid lg:grid-cols-12 gap-8 items-center">
-                    
-                    {/* TEXTO DA ESQUERDA */}
                     <div className="text-center lg:text-left lg:col-span-5 order-2 lg:order-1 z-20">
                       <h2 className="text-5xl md:text-6xl lg:text-7xl font-serif leading-[1.1] mb-6 tracking-tight text-white drop-shadow-2xl">
                         Crosta Doré.<br/>
                         <span className="italic text-white/50 font-light">Suculência Preservada.</span>
                       </h2>
                       <p className="text-white/60 font-light max-w-md mx-auto lg:mx-0 leading-relaxed text-sm mb-8">
-                        Cada assado é finalizado sob medida. Selecione a base, a infusão e acompanhe a tradição até a sua mesa.
+                        Não somos um fast-food. Somos uma rotisserie de precisão. Reserve seu assado com 7 dias de antecedência para garantir as 24h de infusão botânica exigidas pela nossa técnica.
                       </p>
                       <button 
                         onClick={() => { triggerVibration(10); document.getElementById('passo-corte').scrollIntoView({ behavior: 'smooth' }); }}
                         className="hidden md:inline-block px-10 py-4 border border-[#D4AF37]/30 bg-[#D4AF37]/5 rounded-full text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-500 font-bold text-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.1)] hover:shadow-[0_0_25px_rgba(212,175,55,0.4)]"
                       >
-                        Iniciar Seleção
+                        Iniciar Reserva
                       </button>
                     </div>
 
-                    {/* IMAGEM GIGANTE DA DIREITA */}
                     <div className="relative group flex justify-center lg:justify-end w-full lg:col-span-7 order-1 lg:order-2">
                       <div className="absolute inset-0 bg-[#D4AF37] blur-[120px] opacity-10 rounded-full"></div>
                       <img 
@@ -480,7 +489,7 @@
                   </div>
                 </div>
 
-                {/* 01. O CORTE (O FUNIL COMEÇA AQUI - Margens Reduzidas para "App Feel") */}
+                {/* 01. O CORTE */}
                 <section id="passo-corte" className="max-w-5xl mx-auto px-6 mb-16 md:mb-20 reveal scroll-mt-24">
                   <div className="flex items-center gap-4 mb-6">
                     <span className="text-[#D4AF37] font-serif text-2xl italic opacity-30">01</span>
@@ -490,7 +499,7 @@
                     {BUILDER_DATA.cortes.map(item => (
                       <div key={item.id} onClick={() => handleSelectCorte(item)} className={`group glass-panel p-2 overflow-hidden rounded-3xl ${builder.corte?.id === item.id ? 'selected border-[#D4AF37]' : ''}`}>
                         <div className="aspect-[16/10] rounded-[1.5rem] overflow-hidden mb-4 relative bg-[#050505]">
-                          <img src={item.img} loading="lazy" className={`w-full h-full object-cover transition-all duration-700 ${builder.corte?.id === item.id ? 'brightness-110 scale-105' : 'brightness-90 group-hover:brightness-110 group-hover:scale-105'}`} />
+                          <img src={item.img} loading="lazy" className={`w-full h-full object-cover transition-all duration-700 saturate-150 ${builder.corte?.id === item.id ? 'brightness-110 scale-105' : 'brightness-90 group-hover:brightness-110 group-hover:scale-105'}`} />
                           {builder.corte?.id === item.id && (
                             <div className="absolute top-3 right-3 bg-[#D4AF37] text-black text-[8px] uppercase tracking-widest px-3 py-1.5 rounded-full font-bold">Selecionado</div>
                           )}
@@ -507,11 +516,35 @@
                   </div>
                 </section>
 
-                {/* 02. A MARINADA (Cards com Imagens - Funil Rápido) */}
+                {/* CONTRASTE: SEÇÃO FULL-BLEED (Explicação dos 7 Dias) */}
+                <div className="w-full bg-[#050505] py-20 mb-24 border-y border-white/5 reveal">
+                  <div className="max-w-5xl mx-auto px-6 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-12">
+                    <div className="max-w-lg">
+                      <span className="text-[#D4AF37] text-[8px] tracking-[0.4em] uppercase mb-4 block">O Tempo Como Ingrediente</span>
+                      <h3 className="text-3xl font-serif leading-tight text-white mb-4">A Exclusividade <br/><span className="italic text-[#D4AF37]">Do Tempo.</span></h3>
+                      <p className="text-white/40 font-light leading-relaxed text-xs">
+                        Para que a crosta de vidro aconteça e os sucos permaneçam intactos no peito, cada ave repousa por 24 horas em nossa infusão. É por isso que não trabalhamos com prateleiras cheias. Atendemos apenas com encomendas prévias de 7 dias, garantindo lotes mínimos de no máximo 5 unidades por fim de semana.
+                      </p>
+                    </div>
+                    <div className="flex gap-10 opacity-80">
+                      <div className="text-center">
+                        <span className="block text-[#D4AF37] font-mono text-2xl mb-1">7 Dias</span>
+                        <span className="text-[8px] uppercase tracking-widest text-white/50">Reserva</span>
+                      </div>
+                      <div className="w-[1px] h-10 bg-white/10"></div>
+                      <div className="text-center">
+                        <span className="block text-[#D4AF37] font-mono text-2xl mb-1">5 Aves</span>
+                        <span className="text-[8px] uppercase tracking-widest text-white/50">Por Fim de Semana</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 02. A MARINADA */}
                 <section id="passo-marinada" className={`max-w-5xl mx-auto px-6 mb-16 md:mb-20 reveal scroll-mt-24 transition-opacity duration-500 ${!builder.corte ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
                   <div className="flex items-center gap-4 mb-6">
                     <span className="text-[#D4AF37] font-serif text-2xl italic opacity-30">02</span>
-                    <h3 className="text-xs uppercase tracking-[0.3em] font-light text-white/70">A Infusão</h3>
+                    <h3 className="text-xs uppercase tracking-[0.3em] font-light text-white/70">A Infusão (24h)</h3>
                   </div>
                   <div className="grid md:grid-cols-3 gap-6">
                     {BUILDER_DATA.marinadas.map(item => (
@@ -562,7 +595,7 @@
                   </div>
                 </section>
 
-                {/* BOTÃO DESKTOP FINALIZAR CONSTRUÇÃO (Fica escondido no mobile pela Smart Bar) */}
+                {/* BOTÃO DESKTOP FINALIZAR CONSTRUÇÃO */}
                 <div className={`max-w-5xl mx-auto px-6 mb-24 reveal transition-all duration-500 hidden md:block text-center md:text-left ${(!builder.corte || !builder.marinada || (builder.corte.type === 'recheado' && !builder.recheio)) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                    <button 
                       onClick={addCustomChickenToCart}
@@ -572,7 +605,7 @@
                     </button>
                 </div>
 
-                {/* 04. EXTRAS COM MINIATURAS VISUAIS (App Design) */}
+                {/* 04. EXTRAS */}
                 <section id="passo-complementos" className="max-w-5xl mx-auto px-6 mb-20 reveal scroll-mt-24 border-t border-white/5 pt-16">
                   <div className="mb-10 text-center md:text-left">
                     <span className="text-[#D4AF37] text-[9px] tracking-[0.4em] uppercase block mb-2 font-light">Para Acompanhar</span>
@@ -580,7 +613,6 @@
                   </div>
                   
                   <div className="grid lg:grid-cols-2 gap-10">
-                    {/* Farofas Premium */}
                     <div>
                       <h4 className="font-sans text-[10px] uppercase tracking-[0.2em] text-white/50 mb-4 pl-2">Farofas Premium</h4>
                       <div className="flex flex-col gap-3">
@@ -604,7 +636,6 @@
                       </div>
                     </div>
 
-                    {/* Molhos Artesanais */}
                     <div>
                       <h4 className="font-sans text-[10px] uppercase tracking-[0.2em] text-white/50 mb-4 pl-2">Molhos Artesanais</h4>
                       <div className="flex flex-col gap-3">
@@ -636,7 +667,6 @@
                     <span className="text-[#D4AF37] text-[9px] tracking-[0.4em] uppercase block mb-2 font-light">O Propósito</span>
                     <h3 className="text-2xl font-serif text-white">A Arte de Viver Bem</h3>
                   </div>
-                  
                   <div className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-[2rem] overflow-hidden bg-[#050505] cursor-default border border-white/5 shadow-2xl">
                     {BANNER_IMAGES.map((img, index) => (
                       <img
@@ -662,13 +692,13 @@
                 <p className="text-[7px] uppercase tracking-[0.2em] text-white/10 font-mono">© 2026 Boutique DORÉ. Todos os direitos reservados.</p>
               </footer>
 
-              {/* CARRINHO DE RESERVA (App Drawer) */}
+              {/* CARRINHO DE RESERVA C/ ESCASSEZ DE DATAS */}
               <div className={`fixed inset-0 z-50 transition-all duration-500 ${isCartOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
                 <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => { triggerVibration(10); setIsCartOpen(false); }}></div>
                 <div className={`absolute top-0 right-0 h-full w-full max-w-md bg-[#050505] border-l border-white/5 shadow-[-20px_0_50px_rgba(0,0,0,0.9)] flex flex-col transition-transform duration-400 ease-out transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                   
                   <div className="p-6 border-b border-white/5 flex justify-between items-center bg-[#0A0A0A]">
-                    <h4 className="text-md font-serif tracking-widest text-[#D4AF37]">Sua Seleção</h4>
+                    <h4 className="text-md font-serif tracking-widest text-[#D4AF37]">Sua Reserva</h4>
                     <button onClick={() => { triggerVibration(10); setIsCartOpen(false); }} className="opacity-40 hover:opacity-100 hover:text-white transition-colors p-2 bg-white/5 rounded-full">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
@@ -699,24 +729,62 @@
                           ))}
                         </div>
 
-                        <div className="space-y-5">
-                          <h5 className="text-[9px] uppercase tracking-[0.3em] text-[#D4AF37] font-light pl-1">Detalhes da Entrega</h5>
-                          <div className="space-y-3">
+                        {/* NOVO SISTEMA DE AGENDAMENTO E DATAS */}
+                        <div className="space-y-6">
+                          <h5 className="text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-light pl-1">Agendamento & Logística</h5>
+                          
+                          <div className="space-y-5">
+                            
+                            {/* App-Like Date Selector Horizontal */}
+                            <div className="flex flex-col gap-2">
+                              <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Data da Reserva (Lotes de 7 Dias)</label>
+                              <div className="flex gap-3 overflow-x-auto pb-2 pt-1 hide-scroll snap-x">
+                                {RESERVATION_SLOTS.map(slot => (
+                                  <div 
+                                    key={slot.id}
+                                    onClick={() => {
+                                      if (slot.stock > 0) {
+                                        triggerVibration(10);
+                                        setSelectedDate(slot);
+                                      } else {
+                                        triggerVibration([20,20]);
+                                      }
+                                    }}
+                                    className={`snap-center flex-shrink-0 w-36 p-3 rounded-2xl border transition-all cursor-pointer relative overflow-hidden ${
+                                      slot.stock === 0 ? 'opacity-50 border-white/5 bg-black/40' :
+                                      selectedDate?.id === slot.id ? 'border-[#D4AF37] bg-[#D4AF37]/10 scale-[1.02]' : 'border-white/10 bg-[#111] hover:border-white/30'
+                                    }`}
+                                  >
+                                    <p className="text-[8px] text-white/40 mb-1 uppercase tracking-widest">{slot.week}</p>
+                                    <p className={`text-xs font-bold mb-2 ${slot.stock === 0 ? 'text-white/50 line-through' : 'text-white'}`}>{slot.date}</p>
+                                    {slot.stock === 0 ? (
+                                      <span className="text-[8px] text-red-500/80 font-mono uppercase tracking-widest font-bold">Esgotado</span>
+                                    ) : (
+                                      <span className="text-[8px] text-[#D4AF37] font-mono uppercase tracking-widest font-bold">Restam {slot.stock}</span>
+                                    )}
+                                    {selectedDate?.id === slot.id && <div className="absolute top-0 right-0 w-0 h-0 border-t-[20px] border-t-[#D4AF37] border-l-[20px] border-l-transparent"></div>}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
                             <div className="flex flex-col gap-1.5">
-                              <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Horário</label>
+                              <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Horário de Saída</label>
                               <select value={horario} onChange={(e) => setHorario(e.target.value)} className="w-full app-card bg-[#111] px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors">
                                 {HORARIOS_ENTREGA.map(h => <option key={h} value={h}>{h}</option>)}
                               </select>
                             </div>
+                            
                             <div className="flex flex-col gap-1.5">
-                              <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Bairro</label>
+                              <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Bairro (Chapecó)</label>
                               <select value={bairro} onChange={(e) => setBairro(e.target.value)} className="w-full app-card bg-[#111] px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors">
                                 {Object.keys(BAIRROS_FRETE).map(b => <option key={b} value={b}>{b}</option>)}
                               </select>
                             </div>
+                            
                             <div className="flex flex-col gap-1.5">
-                              <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Observações</label>
-                              <input type="text" value={instrucoes} onChange={(e) => setInstrucoes(e.target.value)} placeholder="Condomínio, bloco, apt..." className="w-full app-card bg-[#111] px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors placeholder:text-white/20" />
+                              <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Observações para o Entregador</label>
+                              <input type="text" value={instrucoes} onChange={(e) => setInstrucoes(e.target.value)} placeholder="Apt, bloco, ponto de ref..." className="w-full app-card bg-[#111] px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors placeholder:text-white/20" />
                             </div>
                           </div>
                         </div>
@@ -745,7 +813,7 @@
                       <button onClick={() => {
                           triggerVibration([30, 20, 30]);
                           const itemsMsg = cart.map(i => `• ${i.name} (${i.qty}x)%0A  _${i.desc}_`).join('%0A%0A');
-                          const finalMsg = `Olá, DORÉ! Gostaria de confirmar minha seleção.%0A%0A*📦 Pedido:*%0A${itemsMsg}%0A%0A*⏱ Horário:* ${horario}%0A*📍 Bairro:* ${bairro}%0A*Obs:* ${instrucoes || 'Nenhuma'}%0A%0A*💳 Total:* R$ ${total.toFixed(2)}%0A%0A_Aguardando confirmação._`;
+                          const finalMsg = `Olá, DORÉ! Gostaria de confirmar minha reserva.%0A%0A*📦 Pedido:*%0A${itemsMsg}%0A%0A*📅 Data Reservada:* ${selectedDate.date}%0A*⏱ Horário:* ${horario}%0A*📍 Bairro:* ${bairro}%0A*Obs:* ${instrucoes || 'Nenhuma'}%0A%0A*💳 Total:* R$ ${total.toFixed(2)}%0A%0A_Aguardando chave Pix e confirmação do lote._`;
                           window.open(`https://wa.me/5549999999999?text=${finalMsg}`);
                         }}
                         className="w-full bg-[#D4AF37] text-black py-4 rounded-xl font-bold uppercase tracking-[0.2em] text-[9px] hover:bg-white transition-colors mt-2"
