@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 /**
  * DORÉ | Boutique de Assados
- * REVISÃO DE ATIVOS: Integração de Imagens Reais (Recheado, Sem Recheio e Sensorial).
+ * VERSÃO FINAL: GitHub Pages Ready
+ * Refinamentos: Motor de Lanterna Infinito, Monograma Responsivo, Fundo Dark.
  * Estética: Slate/Cimento Queimado + Glassmorphism Premium.
- * Cores: Midnight Espresso (#0D0C0A), Champagne Gold (#D4AF37), Creme (#F4F1EA).
  */
 
 const LOGO_URL = "https://alisachapeco.com.br/assets/images/image19.png?v=5f40d70b";
-const PATTERN_URL = "https://alisachapeco.com.br/assets/images/image18.png?v=337fcc30";
 const SENSORIAL_IMG = "https://alisachapeco.com.br/assets/images/image21.png?v=e9c990c3";
 
 const PRODUCTS = {
@@ -16,26 +15,26 @@ const PRODUCTS = {
     { 
       id: 'f1', 
       name: 'DORÉ Clássico', 
-      desc: 'Assado lentamente em baixa temperatura. Crosta de ouro e suculência preservada na essência.', 
+      desc: 'Assado lentamente em baixa temperatura. Crosta de ouro e suculência preservada.', 
       price: 115, 
       img: 'https://alisachapeco.com.br/assets/images/image20.jpg?v=e9c990c3' 
     },
     { 
       id: 'f2', 
       name: 'DORÉ Recheado', 
-      desc: 'Frango nobre recheado com farofa artesanal de miúdos, sálvia e especiarias da boutique.', 
+      desc: 'Frango nobre recheado com farofa artesanal de miúdos, sálvia e especiarias.', 
       price: 145, 
       img: 'https://alisachapeco.com.br/assets/images/image18.jpg?v=e9c990c3' 
     }
   ],
   farofas: [
-    { id: 'a1', name: 'Farofa de Pistache & Bacon', desc: 'Pistaches selecionados e bacon artesanal defumado.', price: 42 },
-    { id: 'a2', name: 'Farofa Panko na Manteiga', desc: 'Crocância extrema com autêntica manteiga de garrafa.', price: 35 }
+    { id: 'a1', name: 'Farofa de Pistache & Bacon', desc: 'Pistaches selecionados, bacon artesanal e manteiga noisette.', price: 42 },
+    { id: 'a2', name: 'Farofa Panko Gourmet', desc: 'Crocância extrema finalizada com autêntica manteiga de garrafa.', price: 35 }
   ],
   molhos: [
-    { id: 'm1', name: 'Aioli de Alho Negro', desc: 'Sabor umami profundo e notas adocicadas.', price: 18 },
+    { id: 'm1', name: 'Aioli de Alho Negro', desc: 'Sabor umami profundo e notas adocicadas sutis.', price: 18 },
     { id: 'm2', name: 'Chimichurri da Boutique', desc: 'Ervas frescas e azeite extra virgem de primeira prensa.', price: 15 },
-    { id: 'm3', name: 'Mostarda & Mel Silvestre', desc: 'O equilíbrio nobre entre picância e doçura.', price: 16 }
+    { id: 'm3', name: 'Mostarda & Mel Silvestre', desc: 'O equilíbrio perfeito e nobre entre picância e doçura.', price: 16 }
   ]
 };
 
@@ -54,21 +53,82 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [bairro, setBairro] = useState('Centro');
 
-  // Spotlight Tracking (Efeito Lanterna Sensorial)
+  // --- MOTOR SENSORIAL (Spotlight Infinito + Mouse Tracking) ---
+  const requestRef = useRef();
+  const isIdle = useRef(true);
+
+  const animateSpotlight = (time) => {
+    if (isIdle.current) {
+      // Cria o movimento de "8" infinito (Curva de Lissajous)
+      const speed = 0.0012;
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const rx = window.innerWidth * 0.35; // Raio X dinâmico
+      const ry = window.innerHeight * 0.25; // Raio Y dinâmico
+      
+      const x = centerX + rx * Math.sin(time * speed);
+      const y = centerY + ry * Math.sin(time * speed * 2);
+
+      document.documentElement.style.setProperty('--mouse-x', `${x}px`);
+      document.documentElement.style.setProperty('--mouse-y', `${y}px`);
+      
+      requestRef.current = requestAnimationFrame(animateSpotlight);
+    }
+  };
+
   useEffect(() => {
+    // Inicia a animação inativa do farol
+    requestRef.current = requestAnimationFrame(animateSpotlight);
+
     const handleMove = (e) => {
+      // Quando o usuário interage, cancelamos a animação inativa
+      if (isIdle.current) {
+        isIdle.current = false;
+        cancelAnimationFrame(requestRef.current);
+      }
       const x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
       const y = e.clientY || (e.touches && e.touches[0].clientY) || 0;
       document.documentElement.style.setProperty('--mouse-x', `${x}px`);
       document.documentElement.style.setProperty('--mouse-y', `${y}px`);
     };
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('touchmove', handleMove);
+    
+    window.addEventListener('mousemove', handleMove, { passive: true });
+    window.addEventListener('touchmove', handleMove, { passive: true });
+    
     return () => {
+      cancelAnimationFrame(requestRef.current);
       window.removeEventListener('mousemove', handleMove);
       window.removeEventListener('touchmove', handleMove);
     };
   }, []);
+
+  // --- MOTOR DE ANIMAÇÃO DE SCROLL (Intersection Observer) ---
+  useEffect(() => {
+    if (stage === 'shop') {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+      const elements = document.querySelectorAll('.reveal');
+      elements.forEach(el => observer.observe(el));
+
+      return () => elements.forEach(el => observer.unobserve(el));
+    }
+  }, [stage]);
+
+  // Bloquear rolagem do fundo quando o carrinho abre
+  useEffect(() => {
+    if (isCartOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; }
+  }, [isCartOpen]);
 
   const addToCart = (product) => {
     if (window.navigator.vibrate) window.navigator.vibrate(40);
@@ -90,47 +150,54 @@ export default function App() {
 
   // --- INTERFACES ---
 
-  // 1. GATE (Portão de Luxo com Spotlight)
+  // 1. GATE (Portão Super Escuro, Lanterna Infinita e Novo Monograma)
   if (stage === 'gate') {
     return (
-      <div id="luxury-gate" className="fixed inset-0 flex flex-col items-center justify-center z-[9999] overflow-hidden slate-bg">
-        <div id="spotlight-wrapper"></div>
-        <div className="pattern-layer" style={{ backgroundImage: `url(${PATTERN_URL})` }}></div>
+      <div id="luxury-gate" className="fixed inset-0 flex flex-col items-center justify-center z-[9999] overflow-hidden">
         
-        <div className="relative z-20 text-center flex flex-col items-center px-6">
-          <div className="mb-16 fade-in-up">
+        {/* Envolto do Refletor: A textura só existe dentro do feixe de luz */}
+        <div id="spotlight-wrapper">
+          <div className="pattern-layer" style={{ backgroundImage: `url(${LOGO_URL})` }}></div>
+        </div>
+        
+        <div className="relative z-20 text-center flex flex-col items-center px-6 pointer-events-none">
+          <div className="mb-16 fade-in-up pointer-events-auto">
             <div className="absolute inset-0 bg-[#D4AF37] blur-[140px] opacity-15"></div>
-            <img src={LOGO_URL} alt="DORÉ" className="h-40 md:h-64 relative z-10 drop-shadow-2xl" />
+            <img src={LOGO_URL} alt="DORÉ" className="h-40 md:h-64 relative z-10 drop-shadow-[0_0_20px_rgba(212,175,55,0.4)]" />
           </div>
           
-          <div className="flex flex-col items-center gap-6 fade-in-up delay-1">
+          <div className="flex flex-col items-center gap-6 fade-in-up delay-1 pointer-events-auto">
             <div className="w-[1px] h-20 bg-gradient-to-b from-transparent via-[#D4AF37] to-transparent opacity-50"></div>
             <button 
               onClick={() => {
                 if (window.navigator.vibrate) window.navigator.vibrate([60, 40, 60]);
                 setStage('shop');
               }}
-              className="group relative px-16 py-6 border border-[#D4AF37]/30 bg-black/20 backdrop-blur-md text-[#D4AF37] text-[11px] tracking-[0.8em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black"
+              className="group relative px-16 py-6 border border-[#D4AF37]/40 bg-black/40 backdrop-blur-md text-[#D4AF37] text-[11px] tracking-[0.8em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black hover:scale-105"
             >
-              <span className="relative z-10 font-bold">Toque para Iniciar</span>
+              <span className="relative z-10 font-bold drop-shadow-md">Toque para Iniciar</span>
               <div className="absolute inset-0 bg-[#D4AF37] translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
             </button>
           </div>
         </div>
 
         <style>{`
-          #luxury-gate { position: fixed; inset: 0; }
+          /* Fundo Breu Escuro para realçar o brilho */
+          #luxury-gate { position: fixed; inset: 0; background-color: #050505; }
+          
           #spotlight-wrapper { 
-            position: fixed; inset: 0; z-index: 5; pointer-events: none; 
-            background: radial-gradient(circle 500px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(212, 175, 55, 0.18) 0%, transparent 70%); 
-            mask-image: radial-gradient(circle 500px at var(--mouse-x, 50%) var(--mouse-y, 50%), black 10%, rgba(0,0,0,0.3) 50%, transparent 100%); 
-            -webkit-mask-image: radial-gradient(circle 500px at var(--mouse-x, 50%) var(--mouse-y, 50%), black 10%, rgba(0,0,0,0.3) 50%, transparent 100%); 
+            position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden;
+            background: radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), rgba(212, 175, 55, 0.18) 0%, transparent 80%); 
+            -webkit-mask-image: radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), black 10%, rgba(0,0,0,0.2) 60%, transparent 100%); 
+            mask-image: radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), black 10%, rgba(0,0,0,0.2) 60%, transparent 100%); 
           }
+          
           .pattern-layer { 
-            position: absolute; inset: -50%; width: 200%; height: 200%; 
-            background-size: 80px; background-repeat: repeat; transform: rotate(-12deg); 
-            opacity: 0.12; filter: grayscale(1) contrast(1.2); mix-blend-mode: overlay; 
+            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; 
+            background-size: clamp(80px, 12vw, 150px); background-repeat: repeat; transform: rotate(-15deg); 
+            opacity: 0.35; filter: grayscale(1) brightness(1.3) contrast(1.2); mix-blend-mode: screen; 
           }
+          
           @keyframes fadeInUpFixed { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           .fade-in-up { animation: fadeInUpFixed 1.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
           .delay-1 { animation-delay: 0.5s; }
@@ -139,14 +206,15 @@ export default function App() {
     );
   }
 
+  // 2. LOJA (A Boutique)
   return (
     <div className="min-h-screen slate-bg text-[#F4F1EA] font-sans selection:bg-[#D4AF37] selection:text-black">
       
-      {/* Background Texture Overlay */}
-      <div className="fixed inset-0 opacity-40 pointer-events-none noise-bg mix-blend-soft-light"></div>
+      {/* Overlay de Textura de Fundo */}
+      <div className="fixed inset-0 opacity-40 pointer-events-none noise-bg mix-blend-soft-light z-0"></div>
 
       {/* Header Fixo - Glassmorphism */}
-      <nav className="fixed top-0 w-full z-40 bg-black/40 backdrop-blur-3xl border-b border-white/5">
+      <nav className="fixed top-0 w-full z-40 bg-black/50 backdrop-blur-2xl border-b border-white/5 shadow-2xl">
         <div className="max-w-6xl mx-auto px-6 h-24 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <img src={LOGO_URL} alt="DORÉ" className="h-10 md:h-12 drop-shadow-lg" />
@@ -169,10 +237,10 @@ export default function App() {
         </div>
       </nav>
 
-      <main className="pt-40 pb-32 px-6 max-w-6xl mx-auto">
+      <main className="pt-40 pb-32 px-6 max-w-6xl mx-auto relative z-10">
         
         {/* Seção Hero */}
-        <header className="text-center mb-32 reveal visible">
+        <header className="text-center mb-32 reveal">
           <span className="text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase mb-6 block font-light">Chapecó • Produção Artesanal</span>
           <h2 className="text-5xl md:text-8xl font-serif leading-tight mb-10 tracking-tight text-white drop-shadow-2xl">
             Crosta de Ouro.<br/>
@@ -183,8 +251,8 @@ export default function App() {
           </p>
         </header>
 
-        {/* 01. Seleção de Assados - IMAGENS REAIS */}
-        <section className="mb-40">
+        {/* 01. Seleção de Assados */}
+        <section className="mb-40 reveal">
           <div className="flex items-center gap-6 mb-16">
             <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">01</span>
             <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">O Assado Principal</h3>
@@ -194,8 +262,8 @@ export default function App() {
             {PRODUCTS.frangos.map(item => (
               <div key={item.id} className="group glass-panel p-3 overflow-hidden rounded-[3rem]">
                 <div className="aspect-[16/10] rounded-[2.5rem] overflow-hidden mb-8 relative">
-                  <img src={item.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 opacity-80 group-hover:opacity-100 mix-blend-luminosity hover:mix-blend-normal" alt={item.name} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
+                  <img src={item.img} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 opacity-80 group-hover:opacity-100 mix-blend-luminosity hover:mix-blend-normal" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-60"></div>
                 </div>
                 <div className="px-8 pb-10 text-center md:text-left">
                   <div className="flex flex-col md:flex-row justify-between items-baseline mb-6">
@@ -215,35 +283,36 @@ export default function App() {
           </div>
         </section>
 
-        {/* Unboxing / Sensorial Section - NOVA IMAGEM */}
-        <section className="mb-40">
+        {/* Unboxing / Sensorial Section */}
+        <section className="mb-40 reveal">
           <div className="glass-panel overflow-hidden rounded-[3rem] grid lg:grid-cols-2 items-center">
             <div className="p-12 md:p-20 order-2 lg:order-1">
               <span className="text-[#D4AF37] text-[10px] tracking-[0.5em] uppercase mb-8 block">A Experiência DORÉ</span>
-              <h3 className="text-4xl md:text-5xl font-serif mb-8 leading-tight">O Ritual do<br/><span className="italic">Desejo.</span></h3>
+              <h3 className="text-4xl md:text-5xl font-serif mb-8 leading-tight text-white">O Ritual do<br/><span className="italic text-[#D4AF37]">Desejo.</span></h3>
               <p className="text-white/40 font-light leading-relaxed mb-10 text-lg">
-                Não é apenas uma entrega, é um protocolo de luxo. Receba o seu assado em embalagem térmica boutique, mantendo a crosta e os sucos exatamente como saíram da nossa boutique.
+                Não é apenas uma entrega, é um protocolo de luxo. Receba o seu assado em embalagem térmica boutique, projetada para manter a crosta sonora e os sucos exatamente como saíram do fogo.
               </p>
               <div className="flex gap-10">
                 <div>
-                  <span className="block text-[#D4AF37] font-mono text-xl mb-1">24h</span>
+                  <span className="block text-[#D4AF37] font-mono text-2xl mb-1 drop-shadow-md">24h</span>
                   <span className="text-[9px] uppercase tracking-widest opacity-40">Infusão</span>
                 </div>
-                <div className="w-[1px] h-10 bg-white/10"></div>
+                <div className="w-[1px] h-12 bg-white/10"></div>
                 <div>
-                  <span className="block text-[#D4AF37] font-mono text-xl mb-1">85°C</span>
-                  <span className="text-[9px] uppercase tracking-widest opacity-40">Cocção</span>
+                  <span className="block text-[#D4AF37] font-mono text-2xl mb-1 drop-shadow-md">85°C</span>
+                  <span className="text-[9px] uppercase tracking-widest opacity-40">Ponto Perfeito</span>
                 </div>
               </div>
             </div>
-            <div className="aspect-square lg:aspect-auto h-full overflow-hidden order-1 lg:order-2">
-              <img src={SENSORIAL_IMG} alt="Sensorial Assado" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+            <div className="aspect-square lg:aspect-auto lg:h-[600px] overflow-hidden order-1 lg:order-2 relative group">
+              <img src={SENSORIAL_IMG} alt="Sensorial Assado" loading="lazy" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-1000 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent lg:block hidden"></div>
             </div>
           </div>
         </section>
 
         {/* 02. Complementos */}
-        <section className="mb-40">
+        <section className="mb-40 reveal">
           <div className="flex items-center gap-6 mb-16">
             <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">02</span>
             <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">Complementos Premium</h3>
@@ -271,7 +340,7 @@ export default function App() {
         </section>
 
         {/* 03. Molhos */}
-        <section className="mb-20">
+        <section className="mb-20 reveal">
           <div className="flex items-center gap-6 mb-16">
             <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">03</span>
             <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">Alquimia de Sabores</h3>
@@ -302,19 +371,22 @@ export default function App() {
 
       {/* CARRINHO GAVETA */}
       <div className={`fixed inset-0 z-50 transition-all duration-700 ${isCartOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setIsCartOpen(false)}></div>
-        <div className={`absolute top-0 right-0 h-full w-full max-w-md bg-black/40 backdrop-blur-[60px] border-l border-white/10 shadow-2xl flex flex-col transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        {/* Fundo escuro com desfoque */}
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsCartOpen(false)}></div>
+        
+        {/* Painel Lateral */}
+        <div className={`absolute top-0 right-0 h-full w-full max-w-md bg-[#0a0a0a]/95 backdrop-blur-[40px] border-l border-white/10 shadow-[-20px_0_50px_rgba(0,0,0,0.8)] flex flex-col transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           
-          <div className="p-10 border-b border-white/10 flex justify-between items-center">
-            <h4 className="text-3xl font-serif tracking-[0.1em]">Sua Reserva</h4>
-            <button onClick={() => setIsCartOpen(false)} className="opacity-40 hover:opacity-100 transition-opacity">
+          <div className="p-10 border-b border-white/10 flex justify-between items-center bg-black/50">
+            <h4 className="text-2xl font-serif tracking-[0.1em] text-[#D4AF37]">Sua Reserva</h4>
+            <button onClick={() => setIsCartOpen(false)} className="opacity-40 hover:opacity-100 hover:text-[#D4AF37] transition-colors">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto p-10 space-y-12">
             {cart.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center opacity-10 text-center">
+              <div className="h-full flex flex-col items-center justify-center opacity-20 text-center">
                 <p className="text-[10px] uppercase tracking-[0.5em] mb-6 font-light">Sua lista está vazia</p>
                 <div className="w-16 h-[1px] bg-white/40"></div>
               </div>
@@ -323,12 +395,12 @@ export default function App() {
                 <div key={item.id} className="flex justify-between items-center group animate-fade-in">
                   <div className="max-w-[70%]">
                     <p className="font-serif text-xl mb-1 text-[#F4F1EA] group-hover:text-[#D4AF37] transition-colors">{item.name}</p>
-                    <p className="text-[10px] font-mono opacity-30 tracking-[0.1em] uppercase">{item.qty} x R$ {item.price}</p>
+                    <p className="text-[10px] font-mono opacity-40 tracking-[0.1em] uppercase">{item.qty} x R$ {item.price}</p>
                   </div>
                   <div className="flex items-center gap-6">
                     <span className="font-mono text-[#D4AF37]">R$ {item.price * item.qty}</span>
                     <button onClick={() => removeFromCart(item.id)} className="text-white/20 hover:text-red-500 transition-colors">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                   </div>
                 </div>
@@ -337,38 +409,39 @@ export default function App() {
           </div>
 
           {cart.length > 0 && (
-            <div className="p-10 border-t border-white/10 bg-black/40 backdrop-blur-xl space-y-8">
+            <div className="p-10 border-t border-white/10 bg-black/60 backdrop-blur-xl space-y-8 shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
               <div className="space-y-4">
-                <div className="flex justify-between text-[10px] text-white/30 tracking-[0.2em] uppercase">
+                <div className="flex justify-between text-[10px] text-white/40 tracking-[0.2em] uppercase">
                   <span>Subtotal</span>
-                  <span className="font-mono">R$ {subtotal.toFixed(2)}</span>
+                  <span className="font-mono text-white">R$ {subtotal.toFixed(2)}</span>
                 </div>
                 
+                {/* Sistema de Frete Inteligente */}
                 <div className="space-y-4 pt-4 border-t border-white/5">
-                  <div className="flex justify-between items-center text-[10px] text-white/30 tracking-[0.2em] uppercase">
+                  <div className="flex justify-between items-center text-[10px] text-white/40 tracking-[0.2em] uppercase">
                     <span>Localização</span>
                     <select 
                       value={bairro} 
                       onChange={(e) => setBairro(e.target.value)}
-                      className="bg-transparent text-[#D4AF37] border-none focus:ring-0 cursor-pointer font-sans text-[10px] uppercase tracking-widest outline-none"
+                      className="bg-transparent text-[#D4AF37] border-none focus:ring-0 cursor-pointer font-sans text-[10px] uppercase tracking-widest outline-none text-right"
                     >
                       {Object.keys(BAIRROS_FRETE).map(b => <option key={b} value={b} className="bg-neutral-900">{b}</option>)}
                     </select>
                   </div>
-                  <div className="flex justify-between text-[10px] text-white/30 tracking-[0.2em] uppercase items-center">
+                  <div className="flex justify-between text-[10px] text-white/40 tracking-[0.2em] uppercase items-center">
                     <span className="flex items-center gap-3">Frete Inteligente <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-ping"></div></span>
-                    <span className="font-mono">R$ {freightValue.toFixed(2)}</span>
+                    <span className="font-mono text-white">R$ {freightValue.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
               
               <div className="pt-8 flex justify-between items-baseline border-t border-white/10">
                 <span className="text-4xl font-serif text-[#D4AF37]">Total</span>
-                <span className="text-3xl font-mono">R$ {total.toFixed(2)}</span>
+                <span className="text-3xl font-mono text-white">R$ {total.toFixed(2)}</span>
               </div>
               
               <button 
-                className="w-full bg-[#D4AF37] text-[#0D0C0A] py-7 rounded-[2rem] font-bold uppercase tracking-[0.4em] text-[10px] hover:bg-[#F4F1EA] transition-all duration-700 mt-8 shadow-[0_20px_50px_-10px_rgba(212,175,55,0.4)]"
+                className="w-full bg-[#D4AF37] text-[#0D0C0A] py-7 rounded-[2rem] font-bold uppercase tracking-[0.4em] text-[10px] hover:bg-white transition-all duration-500 mt-8 shadow-[0_10px_30px_rgba(212,175,55,0.2)] hover:shadow-[0_15px_40px_rgba(212,175,55,0.4)]"
                 onClick={() => {
                   const itemsMsg = cart.map(i => `• ${i.name} (${i.qty}x)`).join('%0A');
                   const msg = `Olá! Gostaria de confirmar minha reserva DORÉ.%0A%0A*Pedido:*%0A${itemsMsg}%0A%0A*Local:* ${bairro}%0A*Total:* R$ ${total.toFixed(2)}%0A%0A_Aguardando horários disponíveis._`;
@@ -382,6 +455,7 @@ export default function App() {
         </div>
       </div>
 
+      {/* ESTILOS CORE & ANIMAÇÕES */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap');
         
@@ -398,7 +472,7 @@ export default function App() {
         .slate-bg {
           background-color: #0D0C0A;
           background-image: 
-            radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.8) 0%, #0D0C0A 100%),
+            radial-gradient(circle at 50% 50%, rgba(30, 30, 30, 0.6) 0%, #0D0C0A 100%),
             url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
           background-attachment: fixed;
         }
@@ -410,29 +484,41 @@ export default function App() {
         /* --- GLASSMORPHISM REFINADO --- */
         .glass-panel {
           background: rgba(255, 255, 255, 0.02);
-          backdrop-filter: blur(25px);
-          -webkit-backdrop-filter: blur(25px);
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.04);
           transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
         }
         
         .glass-panel:hover {
-          border-color: rgba(212, 175, 55, 0.2);
+          border-color: rgba(212, 175, 55, 0.3);
           background: rgba(255, 255, 255, 0.04);
           transform: translateY(-8px);
-          box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
         }
 
-        .text-shadow-glow { text-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
+        .text-shadow-glow { text-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
 
-        .reveal { opacity: 0; transform: translateY(50px); transition: all 1.5s cubic-bezier(0.16, 1, 0.3, 1); }
-        .reveal.visible { opacity: 1; transform: translateY(0); }
+        /* --- MOTOR DE SCROLL REVEAL --- */
+        .reveal { 
+          opacity: 0; 
+          transform: translateY(60px); 
+          transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1); 
+          will-change: opacity, transform;
+        }
+        .reveal.visible { 
+          opacity: 1; 
+          transform: translateY(0); 
+        }
 
-        ::-webkit-scrollbar { width: 5px; }
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0D0C0A; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 20px; }
+        ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
         
+        /* Remove o layout padrão do select */
         select { appearance: none; -webkit-appearance: none; }
       `}</style>
     </div>
