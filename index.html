@@ -78,6 +78,13 @@
           transform: translateY(0); 
         }
 
+        /* Animação do Pulso de Escassez */
+        @keyframes pulse-soft {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        .animate-pulse-soft { animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #0D0C0A; }
         ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 10px; }
@@ -139,6 +146,9 @@
 
         const BAIRROS_FRETE = { 'Centro': 12, 'Efapi': 20, 'Santa Maria': 15, 'Passo dos Fortes': 15, 'Bela Vista': 12, 'Outros': 18 };
         const HORARIOS_ENTREGA = ['Domingo | 11:00 - 11:30', 'Domingo | 11:30 - 12:00', 'Domingo | 12:00 - 12:30', 'Domingo | 12:30 - 13:00'];
+
+        // Lógica de Escassez Simulada para as 30 unidades
+        const UNIDADES_RESTANTES = 7; // Este número pode vir de um backend futuramente. 7 gera urgência perfeita.
 
         const TIMELINE_STEPS = [
           { id: 'capa', label: 'Início' },
@@ -306,6 +316,28 @@
           const freightValue = cart.length > 0 ? BAIRROS_FRETE[bairro] : 0;
           const total = subtotal + freightValue;
 
+          // Lógica da Barra Inteligente de Conversão (Smart Sticky Bar)
+          const isBuilderActive = builder.corte !== null;
+          const isBuilderComplete = builder.corte && builder.marinada && (builder.corte.type === 'classico' || builder.recheio);
+          
+          const handleStickyBarClick = () => {
+            if (isBuilderComplete) {
+              addCustomChickenToCart();
+            } else if (isBuilderActive && !builder.marinada) {
+              document.getElementById('passo-marinada').scrollIntoView({ behavior: 'smooth' });
+              triggerVibration(10);
+            } else if (isBuilderActive && builder.corte.type === 'recheado' && !builder.recheio) {
+              document.getElementById('passo-recheio').scrollIntoView({ behavior: 'smooth' });
+              triggerVibration(10);
+            } else if (cart.length > 0) {
+              setIsCartOpen(true);
+              triggerVibration(10);
+            } else {
+              document.getElementById('passo-corte').scrollIntoView({ behavior: 'smooth' });
+              triggerVibration(10);
+            }
+          };
+
           // --- GATE ---
           if (stage === 'gate') {
             return (
@@ -356,6 +388,28 @@
                 </div>
               </div>
 
+              {/* BARRA INTELIGENTE DE CONVERSÃO (MOBILE STICKY BOTTOM) */}
+              <div className={`fixed bottom-0 left-0 w-full z-40 transition-transform duration-500 ease-in-out md:hidden ${stage === 'shop' && !isCartOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+                <div className="bg-[#050505]/90 backdrop-blur-2xl border-t border-white/10 p-4 pb-6 shadow-[0_-10px_40px_rgba(0,0,0,0.8)]">
+                  <button 
+                    onClick={handleStickyBarClick}
+                    className={`w-full py-4 rounded-full font-bold uppercase tracking-[0.2em] text-[10px] transition-all duration-300 flex justify-center items-center gap-3 ${
+                      isBuilderComplete 
+                        ? 'bg-[#D4AF37] text-black shadow-[0_0_20px_rgba(212,175,55,0.3)]' 
+                        : cart.length > 0 && !isBuilderActive
+                          ? 'bg-white text-black'
+                          : 'bg-white/10 text-[#D4AF37] border border-[#D4AF37]/30'
+                    }`}
+                  >
+                    {!isBuilderActive && cart.length === 0 && 'Iniciar Reserva'}
+                    {isBuilderActive && !builder.marinada && 'Continuar: Escolher Infusão'}
+                    {isBuilderActive && builder.marinada && builder.corte?.type === 'recheado' && !builder.recheio && 'Continuar: Escolher Recheio'}
+                    {isBuilderComplete && `Adicionar Preparo (+ R$ ${builder.corte.price})`}
+                    {!isBuilderActive && cart.length > 0 && `Ver Reserva (R$ ${total.toFixed(2)})`}
+                  </button>
+                </div>
+              </div>
+
               {/* HEADER */}
               <nav className="fixed top-0 w-full z-40 bg-[#050505]/80 backdrop-blur-md border-b border-white/5">
                 <div className="max-w-6xl mx-auto px-6 h-20 flex justify-between items-center xl:pl-48">
@@ -380,6 +434,17 @@
                 
                 {/* 00. CAPA (HERO) */}
                 <div className="max-w-5xl mx-auto px-6 xl:pl-32 mb-32 reveal" id="capa">
+                  
+                  {/* GATILHO DE ESCASSEZ */}
+                  <div className="flex justify-center lg:justify-start mb-8">
+                    <div className="inline-flex items-center gap-3 px-4 py-2 border border-[#D4AF37]/30 bg-[#D4AF37]/10 rounded-full backdrop-blur-sm">
+                      <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse-soft"></div>
+                      <span className="text-[9px] uppercase tracking-[0.3em] text-[#D4AF37] font-semibold">
+                        Lote de Domingo: Restam {UNIDADES_RESTANTES} Unidades
+                      </span>
+                    </div>
+                  </div>
+
                   <div className="grid lg:grid-cols-2 gap-12 items-center">
                     <div className="text-center lg:text-left">
                       <span className="text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase mb-6 block font-light">A Arte do Bem Viver</span>
@@ -431,82 +496,13 @@
                   </div>
                 </section>
 
-                {/* CONTRASTE: SEÇÃO FULL-BLEED DARK */}
-                <div className="w-full bg-[#050505] py-24 mb-32 border-y border-white/5 reveal">
-                  <div className="max-w-5xl mx-auto px-6 xl:pl-32 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-12">
-                    <div className="max-w-lg">
-                      <span className="text-[#D4AF37] text-[9px] tracking-[0.4em] uppercase mb-4 block">Nossa Essência</span>
-                      <h3 className="text-3xl md:text-4xl font-serif leading-tight text-white mb-6">O Tempo como <br/><span className="italic text-[#D4AF37]">Ingrediente.</span></h3>
-                      <p className="text-white/40 font-light leading-relaxed text-sm">
-                        Cada peça é tratada com respeito. O preparo lento garante a integridade da crosta, enquanto nossa embalagem desenvolvida sob medida preserva a temperatura até sua mesa.
-                      </p>
-                    </div>
-                    <div className="flex gap-10 opacity-80">
-                      <div className="text-center">
-                        <span className="block text-[#D4AF37] font-mono text-3xl mb-1">24h</span>
-                        <span className="text-[8px] uppercase tracking-widest text-white/50">Infusão</span>
-                      </div>
-                      <div className="w-[1px] h-12 bg-white/10"></div>
-                      <div className="text-center">
-                        <span className="block text-[#D4AF37] font-mono text-3xl mb-1">85°C</span>
-                        <span className="text-[8px] uppercase tracking-widest text-white/50">Interno</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 02. A MARINADA */}
-                <section id="passo-marinada" className={`max-w-5xl mx-auto px-6 xl:pl-32 mb-24 reveal scroll-mt-24 transition-opacity duration-700 ${!builder.corte ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
-                  <div className="flex items-center gap-4 mb-8">
-                    <span className="text-[#D4AF37] font-serif text-3xl italic opacity-30">02</span>
-                    <h3 className="text-sm uppercase tracking-[0.3em] font-light text-white/70">A Infusão</h3>
-                  </div>
-                  <div className="flex flex-col">
-                    {BUILDER_DATA.marinadas.map(item => (
-                      <div key={item.id} onClick={() => handleSelectMarinada(item)} className="border-b border-white/5 py-6 flex items-center justify-between cursor-pointer group hover:bg-white/5 px-4 rounded-lg transition-colors">
-                        <div className="flex items-center gap-6">
-                          <div className={`w-3 h-3 rounded-full border ${builder.marinada?.id === item.id ? 'border-[#D4AF37] bg-[#D4AF37]' : 'border-white/20 group-hover:border-white/50'} transition-colors`}></div>
-                          <div>
-                            <h4 className={`text-lg font-serif transition-colors ${builder.marinada?.id === item.id ? 'text-[#D4AF37]' : 'text-[#F4F1EA] group-hover:text-white'}`}>{item.name}</h4>
-                            <p className="text-[10px] text-white/30 font-light mt-1 hidden md:block">{item.desc}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                {/* 03. O RECHEIO */}
-                <section id="passo-recheio" className={`max-w-5xl mx-auto px-6 xl:pl-32 mb-24 reveal scroll-mt-24 transition-all duration-700 ${(!builder.marinada || builder.corte?.type === 'classico') ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
-                  <div className="flex items-center gap-4 mb-8 relative">
-                    <span className="text-[#D4AF37] font-serif text-3xl italic opacity-30">03</span>
-                    <h3 className="text-sm uppercase tracking-[0.3em] font-light text-white/70">O Recheio</h3>
-                    {builder.corte?.type === 'classico' && (
-                      <span className="absolute right-0 text-[9px] text-[#D4AF37] uppercase tracking-widest bg-[#D4AF37]/10 px-3 py-1 rounded">Dispensável</span>
-                    )}
-                  </div>
-                  <div className="flex flex-col">
-                    {BUILDER_DATA.recheios.map(item => (
-                      <div key={item.id} onClick={() => handleSelectRecheio(item)} className="border-b border-white/5 py-6 flex items-center justify-between cursor-pointer group hover:bg-white/5 px-4 rounded-lg transition-colors">
-                        <div className="flex items-center gap-6">
-                          <div className={`w-3 h-3 rounded-full border ${builder.recheio?.id === item.id ? 'border-[#D4AF37] bg-[#D4AF37]' : 'border-white/20 group-hover:border-white/50'} transition-colors`}></div>
-                          <div>
-                            <h4 className={`text-lg font-serif transition-colors ${builder.recheio?.id === item.id ? 'text-[#D4AF37]' : 'text-[#F4F1EA] group-hover:text-white'}`}>{item.name}</h4>
-                            <p className="text-[10px] text-white/30 font-light mt-1 hidden md:block">{item.desc}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                {/* FINALIZAR CONSTRUÇÃO */}
-                <div id="passo-finalizar" className={`max-w-5xl mx-auto px-6 xl:pl-32 mb-32 reveal transition-all duration-1000 ${(!builder.corte || !builder.marinada || (builder.corte.type === 'recheado' && !builder.recheio)) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                {/* O BOTÃO DE FINALIZAR CONSTRUÇÃO FOI REMOVIDO DAQUI (Evita cegueira). A Smart Bar ou a ação automática assume isso. Mas para Desktop, precisamos mantê-lo visível. */}
+                <div id="passo-finalizar" className={`max-w-5xl mx-auto px-6 xl:pl-32 mb-32 reveal transition-all duration-1000 hidden md:block ${(!builder.corte || !builder.marinada || (builder.corte.type === 'recheado' && !builder.recheio)) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                    <button 
                       onClick={addCustomChickenToCart}
-                      className="w-full md:w-auto px-12 py-5 border border-[#D4AF37]/30 bg-[#D4AF37]/10 rounded-full text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-500 font-bold text-[#D4AF37]"
+                      className="w-auto px-12 py-5 border border-[#D4AF37]/30 bg-[#D4AF37]/10 rounded-full text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-500 font-bold text-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.1)]"
                     >
-                      Adicionar Preparo (R$ {builder.corte?.price})
+                      Adicionar Preparo à Reserva (R$ {builder.corte?.price})
                     </button>
                 </div>
 
