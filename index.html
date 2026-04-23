@@ -16,38 +16,48 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        /* CSS Global e Tipografia */
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap');
         
         :root { --mouse-x: 50%; --mouse-y: 50%; }
         
         body { 
-          background-color: #0D0C0A; 
+          background-color: #030303; 
           font-family: 'Inter', sans-serif; 
           margin: 0; 
           overflow-x: hidden;
           -webkit-font-smoothing: antialiased;
-          /* App-like feel: remove bounce e toques indesejados */
           overscroll-behavior-y: none; 
           -webkit-tap-highlight-color: transparent;
         }
 
-        /* Fundo de Pedra (Ardósia/Cimento) */
-        .slate-bg {
-          background-color: #0D0C0A;
-          background-image: 
-            radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.8) 0%, #0D0C0A 100%),
-            url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-          background-attachment: fixed;
-        }
-
-        .noise-bg {
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        /* Fundo Ember Glow (Brasa Viva Apple-Style) */
+        .ambient-glow {
+          position: fixed;
+          top: 0; left: 0; width: 100vw; height: 100vh;
+          z-index: -1;
+          overflow: hidden;
+          background: #030303;
         }
         
-        /* Glassmorphism Dinâmico - Para áreas grandes */
+        .glow-orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(120px);
+          opacity: 0.15;
+          animation: float-glow 20s infinite ease-in-out alternate;
+        }
+        
+        .glow-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #D4AF37; }
+        .glow-2 { bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: #FF8C00; animation-delay: -5s; }
+
+        @keyframes float-glow {
+          0% { transform: translate(0, 0) scale(1); }
+          100% { transform: translate(10%, 10%) scale(1.1); }
+        }
+
+        /* Painéis de Vidro Principal */
         .glass-panel {
-          background: rgba(20, 20, 20, 0.6);
+          background: rgba(15, 15, 15, 0.4);
           backdrop-filter: blur(25px);
           -webkit-backdrop-filter: blur(25px);
           border: 1px solid rgba(255, 255, 255, 0.05);
@@ -58,24 +68,26 @@
         
         .glass-panel:hover, .glass-panel.selected {
           border-color: rgba(212, 175, 55, 0.6);
-          background: rgba(30, 30, 30, 0.8);
+          background: rgba(30, 30, 30, 0.7);
           transform: translateY(-4px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 40px rgba(212, 175, 55, 0.1) inset;
         }
 
-        /* Cards Sólidos App-like (Legibilidade Máxima) */
+        /* Cartões App-like com Imagens */
         .app-card {
-          background-color: #121212;
+          background-color: #111;
           border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 1rem;
           transition: all 0.3s ease;
           user-select: none;
+          overflow: hidden;
         }
         
         .app-card:active, .app-card.selected {
-          border-color: rgba(212, 175, 55, 0.6);
+          border-color: rgba(212, 175, 55, 0.8);
           background-color: #1a1a1a;
           transform: scale(0.98);
+          box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
         }
 
         .text-shadow-glow { text-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
@@ -97,7 +109,6 @@
           transform: translateY(0); 
         }
 
-        /* Animação do Pulso de Escassez */
         @keyframes pulse-soft {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.5; }
@@ -105,7 +116,7 @@
         .animate-pulse-soft { animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 
         ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #0D0C0A; }
+        ::-webkit-scrollbar-track { background: #030303; }
         ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
         
@@ -116,7 +127,12 @@
         input::placeholder { color: rgba(255,255,255,0.2); }
     </style>
 </head>
-<body class="slate-bg">
+<body>
+    <!-- Fundo Animado Base -->
+    <div class="ambient-glow">
+        <div class="glow-orb glow-1"></div>
+        <div class="glow-orb glow-2"></div>
+    </div>
     
     <div id="root"></div>
 
@@ -132,48 +148,39 @@
           "https://alisachapeco.com.br/assets/images/image24.jpg?v=d9123dc9"
         ];
 
-        // --- BANCO DE DADOS ---
+        // --- BANCO DE DADOS COM IMAGENS ---
         const BUILDER_DATA = {
           cortes: [
             { id: 'c1', name: 'DORÉ Clássico', type: 'classico', desc: 'A ave em sua essência, sem recheio. Foco absoluto na suculência e na crosta.', price: 115, img: 'https://alisachapeco.com.br/assets/images/image20.jpg?v=e9c990c3' },
             { id: 'c2', name: 'DORÉ Recheado', type: 'recheado', desc: 'Desossado parcialmente para abrigar nossos recheios artesanais.', price: 145, img: 'https://alisachapeco.com.br/assets/images/image18.jpg?v=e9c990c3' }
           ],
           marinadas: [
-            { id: 'm1', name: 'Vinho Branco, Siciliano & Ervas', desc: 'Toque floral e acidez elegante. A infusão botânica clássica.' },
-            { id: 'm2', name: 'Cerveja Stout & Mostarda Dijon', desc: 'Notas amendoadas e sabor profundo. Caramelização intensa.' },
-            { id: 'm3', name: 'Laranja Cravo & Alecrim', desc: 'Cítrico e aromático. Uma homenagem à tradição do assado.' }
+            { id: 'm1', name: 'Vinho Branco, Siciliano & Ervas', desc: 'Toque floral e acidez elegante. A infusão clássica.', img: 'https://images.unsplash.com/photo-1590412200988-a436970781fa?q=80&w=400&auto=format&fit=crop' },
+            { id: 'm2', name: 'Cerveja Stout & Mostarda', desc: 'Notas amendoadas e sabor profundo. Caramelização intensa.', img: 'https://images.unsplash.com/photo-1605333398740-1bc6b4b42211?q=80&w=400&auto=format&fit=crop' },
+            { id: 'm3', name: 'Laranja Cravo & Alecrim', desc: 'Cítrico e aromático. Uma homenagem ao assado tradicional.', img: 'https://images.unsplash.com/photo-1611078713374-219e2e604f32?q=80&w=400&auto=format&fit=crop' }
           ],
           recheios: [
-            { id: 'r1', name: 'Farofa de Miúdos & Sálvia', desc: 'Miúdos selecionados, bacon defumado e ervas frescas.' },
-            { id: 'r2', name: 'Maçã Verde & Castanhas', desc: 'O contraste ideal entre o salgado e a crocância das castanhas.' },
-            { id: 'r3', name: 'Queijo Coalho & Alho Poró', desc: 'Textura cremosa que se funde aos sucos naturais durante o processo.' }
+            { id: 'r1', name: 'Farofa de Miúdos & Sálvia', desc: 'Miúdos selecionados, bacon defumado e ervas frescas.', img: 'https://images.unsplash.com/photo-1551185458-75f1ea38de1f?q=80&w=400&auto=format&fit=crop' },
+            { id: 'r2', name: 'Maçã Verde & Castanhas', desc: 'Contraste entre o salgado e a crocância das castanhas.', img: 'https://images.unsplash.com/photo-1605291523315-d72b2ab68d89?q=80&w=400&auto=format&fit=crop' },
+            { id: 'r3', name: 'Queijo Coalho & Alho Poró', desc: 'Textura cremosa que se funde aos sucos naturais.', img: 'https://images.unsplash.com/photo-1634458397368-8092ec0f80b9?q=80&w=400&auto=format&fit=crop' }
           ]
         };
 
         const EXTRAS = {
           farofas: [
-            { id: 'e1', name: 'Farofa de Pistache', desc: 'Pistaches torrados e manteiga noisette.', price: 42 },
-            { id: 'e2', name: 'Farofa Panko', desc: 'Crocância extrema na autêntica manteiga de garrafa.', price: 35 }
+            { id: 'e1', name: 'Farofa de Pistache', desc: 'Com manteiga noisette.', price: 42, img: 'https://images.unsplash.com/photo-1540420828642-fca2c5c18abe?q=80&w=200&auto=format&fit=crop' },
+            { id: 'e2', name: 'Farofa Panko', desc: 'Na autêntica manteiga de garrafa.', price: 35, img: 'https://images.unsplash.com/photo-1563805042-7684c8a9e9bc?q=80&w=200&auto=format&fit=crop' }
           ],
           molhos: [
-            { id: 'e3', name: 'Aioli de Alho Negro', desc: 'Sabor umami e final adocicado.', price: 18 },
-            { id: 'e4', name: 'Chimichurri DORÉ', desc: 'Ervas frescas e azeite extra virgem.', price: 15 },
-            { id: 'e5', name: 'Mostarda & Mel', desc: 'O equilíbrio perfeito.', price: 16 }
+            { id: 'e3', name: 'Aioli de Alho Negro', desc: 'Sabor umami e final adocicado.', price: 18, img: 'https://images.unsplash.com/photo-1626200419188-3ca649a20726?q=80&w=200&auto=format&fit=crop' },
+            { id: 'e4', name: 'Chimichurri DORÉ', desc: 'Ervas e azeite extra virgem.', price: 15, img: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=200&auto=format&fit=crop' },
+            { id: 'e5', name: 'Mostarda & Mel', desc: 'O equilíbrio perfeito.', price: 16, img: 'https://images.unsplash.com/photo-1588673756209-667500dcc684?q=80&w=200&auto=format&fit=crop' }
           ]
         };
 
         const BAIRROS_FRETE = { 'Centro': 12, 'Efapi': 20, 'Santa Maria': 15, 'Passo dos Fortes': 15, 'Bela Vista': 12, 'Outros': 18 };
         const HORARIOS_ENTREGA = ['Domingo | 11:00 - 11:30', 'Domingo | 11:30 - 12:00', 'Domingo | 12:00 - 12:30', 'Domingo | 12:30 - 13:00'];
         const UNIDADES_RESTANTES = 7; 
-
-        const TIMELINE_STEPS = [
-          { id: 'capa', label: 'Início' },
-          { id: 'passo-corte', label: '01. A Ave' },
-          { id: 'passo-marinada', label: '02. Infusão' },
-          { id: 'passo-recheio', label: '03. Recheio' },
-          { id: 'passo-complementos', label: 'Extras' },
-          { id: 'passo-celebre', label: 'A Celebração' }
-        ];
 
         const triggerVibration = (pattern) => {
           if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
@@ -192,7 +199,6 @@
           const [instrucoes, setInstrucoes] = useState('');
 
           const [builder, setBuilder] = useState({ corte: null, marinada: null, recheio: null });
-          const [activeSection, setActiveSection] = useState('capa');
           const [currentSlide, setCurrentSlide] = useState(0);
 
           const requestRef = useRef();
@@ -245,12 +251,9 @@
                 entries.forEach(entry => {
                   if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
-                    if (entry.target.id && TIMELINE_STEPS.some(s => s.id === entry.target.id)) {
-                      setActiveSection(entry.target.id);
-                    }
                   }
                 });
-              }, { threshold: 0.2 });
+              }, { threshold: 0.1 });
 
               const elements = document.querySelectorAll('.reveal');
               elements.forEach(el => observer.observe(el));
@@ -284,6 +287,7 @@
           const handleSelectRecheio = (item) => {
             triggerVibration(15);
             setBuilder(prev => ({ ...prev, recheio: item }));
+            setTimeout(() => document.getElementById('passo-finalizar').scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
           };
 
           const addCustomChickenToCart = () => {
@@ -316,7 +320,7 @@
               if (exists) return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i);
               return [...prev, { ...item, qty: 1 }];
             });
-            showToast(`${item.name} selecionado`);
+            showToast(`${item.name} adicionado`);
           };
 
           const removeFromCart = (id) => {
@@ -352,13 +356,13 @@
           // --- GATE ---
           if (stage === 'gate') {
             return (
-              <div className="fixed inset-0 flex flex-col items-center justify-center z-[9999] overflow-hidden" style={{ backgroundColor: '#050505' }}>
-                <div style={{ position: 'absolute', inset: 0, zIndex: 5, pointerEvents: 'none', overflow: 'hidden', background: 'radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), rgba(212, 175, 55, 0.18) 0%, transparent 80%)', WebkitMaskImage: 'radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), black 10%, rgba(0,0,0,0.2) 60%, transparent 100%)' }}>
-                  <div style={{ position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%', backgroundSize: 'clamp(80px, 12vw, 150px)', backgroundRepeat: 'repeat', transform: 'rotate(-15deg)', opacity: 0.35, filter: 'grayscale(1) brightness(1.3) contrast(1.2)', mixBlendMode: 'screen', backgroundImage: `url(${LOGO_URL})` }}></div>
+              <div className="fixed inset-0 flex flex-col items-center justify-center z-[9999] overflow-hidden bg-[#030303]">
+                <div style={{ position: 'absolute', inset: 0, zIndex: 5, pointerEvents: 'none', overflow: 'hidden', background: 'radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), rgba(212, 175, 55, 0.15) 0%, transparent 80%)', WebkitMaskImage: 'radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), black 10%, rgba(0,0,0,0.2) 60%, transparent 100%)' }}>
+                  <div style={{ position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%', backgroundSize: 'clamp(80px, 12vw, 150px)', backgroundRepeat: 'repeat', transform: 'rotate(-15deg)', opacity: 0.25, filter: 'grayscale(1) brightness(1.3) contrast(1.2)', mixBlendMode: 'screen', backgroundImage: `url(${LOGO_URL})` }}></div>
                 </div>
                 <div className="relative z-20 text-center flex flex-col items-center px-6 pointer-events-none">
                   <div className="mb-16 pointer-events-auto" style={{ animation: 'fadeInUpFixed 1.5s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
-                    <div className="absolute inset-0 bg-[#D4AF37] blur-[140px] opacity-15"></div>
+                    <div className="absolute inset-0 bg-[#D4AF37] blur-[140px] opacity-10"></div>
                     <img src={LOGO_URL} alt="DORÉ" className="h-40 md:h-64 relative z-10 drop-shadow-[0_0_20px_rgba(212,175,55,0.4)]" />
                   </div>
                   <div className="flex flex-col items-center gap-6 pointer-events-auto" style={{ animation: 'fadeInUpFixed 1.5s cubic-bezier(0.16, 1, 0.3, 1) both', animationDelay: '0.5s' }}>
@@ -374,23 +378,10 @@
             );
           }
 
-          // --- BOUTIQUE ---
+          // --- BOUTIQUE MAIN ---
           return (
             <div className="min-h-screen text-[#F4F1EA] font-sans selection:bg-[#D4AF37] selection:text-black pb-24 md:pb-0">
-              <div className="fixed inset-0 opacity-40 pointer-events-none noise-bg mix-blend-soft-light z-0"></div>
-
-              {/* TIMELINE LATERAL (Desktop) */}
-              <div className="fixed left-8 top-1/2 -translate-y-1/2 z-30 hidden xl:flex flex-col gap-8">
-                {TIMELINE_STEPS.map(step => (
-                  <div key={step.id} className="flex items-center gap-4 cursor-pointer group" onClick={() => document.getElementById(step.id).scrollIntoView({behavior: 'smooth'})}>
-                    <div className={`transition-all duration-500 rounded-full ${activeSection === step.id ? 'w-[3px] h-8 bg-[#D4AF37] shadow-[0_0_10px_#D4AF37]' : 'w-[2px] h-4 bg-white/20 group-hover:bg-white/50'}`}></div>
-                    <span className={`text-[9px] uppercase tracking-[0.3em] transition-all duration-500 ${activeSection === step.id ? 'text-[#D4AF37] font-bold translate-x-2' : 'text-white/30 group-hover:text-white/60'}`}>
-                      {step.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
+              
               {/* TOAST NOTIFICATION (App-like) */}
               <div className={`fixed top-24 md:top-28 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 transform ${toast ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none'}`}>
                 <div className="bg-[#111111] border border-[#D4AF37]/30 text-[#F4F1EA] px-6 py-3 rounded-full text-[10px] tracking-widest uppercase flex items-center gap-3 shadow-[0_15px_30px_rgba(0,0,0,0.8)]">
@@ -399,7 +390,7 @@
                 </div>
               </div>
 
-              {/* MOBILE SMART STICKY BAR (App-like Bottom Navigation) */}
+              {/* MOBILE SMART STICKY BAR */}
               <div className={`fixed bottom-0 left-0 w-full z-40 transition-transform duration-500 ease-in-out md:hidden ${stage === 'shop' && !isCartOpen ? 'translate-y-0' : 'translate-y-full'}`}>
                 <div className="bg-[#050505]/95 backdrop-blur-2xl border-t border-white/10 p-4 pb-6 shadow-[0_-10px_40px_rgba(0,0,0,0.9)]">
                   <button 
@@ -423,7 +414,7 @@
 
               {/* HEADER SUPERIOR */}
               <nav className="fixed top-0 w-full z-40 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 shadow-2xl">
-                <div className="max-w-6xl mx-auto px-6 h-20 md:h-24 flex justify-between items-center xl:pl-48">
+                <div className="max-w-6xl mx-auto px-6 h-20 md:h-24 flex justify-between items-center">
                   <div className="flex items-center gap-4">
                     <img src={LOGO_URL} alt="DORÉ" className="h-8 opacity-90" />
                   </div>
@@ -440,11 +431,10 @@
                 </div>
               </nav>
 
-              {/* MAIN CONTENT */}
               <main className="pt-32 pb-10 relative z-10">
                 
                 {/* 00. CAPA (HERO) */}
-                <div className="max-w-5xl mx-auto px-6 xl:pl-32 mb-32 reveal" id="capa">
+                <div className="max-w-5xl mx-auto px-6 mb-32 reveal" id="capa">
                   
                   {/* BADGE DE ESCASSEZ */}
                   <div className="flex justify-center lg:justify-start mb-8">
@@ -481,7 +471,7 @@
                 </div>
 
                 {/* 01. O CORTE */}
-                <section id="passo-corte" className="max-w-5xl mx-auto px-6 xl:pl-32 mb-24 reveal scroll-mt-24">
+                <section id="passo-corte" className="max-w-5xl mx-auto px-6 mb-24 reveal scroll-mt-24">
                   <div className="flex items-center gap-4 mb-8">
                     <span className="text-[#D4AF37] font-serif text-2xl italic opacity-30">01</span>
                     <h3 className="text-xs uppercase tracking-[0.3em] font-light text-white/70">A Base do Assado</h3>
@@ -490,7 +480,7 @@
                     {BUILDER_DATA.cortes.map(item => (
                       <div key={item.id} onClick={() => handleSelectCorte(item)} className={`group glass-panel p-2 overflow-hidden rounded-3xl ${builder.corte?.id === item.id ? 'selected border-[#D4AF37]' : ''}`}>
                         <div className="aspect-[16/10] rounded-[1.5rem] overflow-hidden mb-4 relative bg-[#050505]">
-                          <img src={item.img} loading="lazy" className={`w-full h-full object-cover transition-all duration-1000 ${builder.corte?.id === item.id ? 'brightness-110 scale-105' : 'brightness-75 group-hover:brightness-100 group-hover:scale-105'}`} />
+                          <img src={item.img} loading="lazy" className={`w-full h-full object-cover transition-all duration-1000 saturate-150 ${builder.corte?.id === item.id ? 'brightness-110 scale-105' : 'brightness-75 group-hover:brightness-100 group-hover:scale-105'}`} />
                           {builder.corte?.id === item.id && (
                             <div className="absolute top-4 right-4 bg-[#D4AF37] text-black text-[8px] uppercase tracking-widest px-3 py-1.5 rounded-full font-bold">Selecionado</div>
                           )}
@@ -507,9 +497,9 @@
                   </div>
                 </section>
 
-                {/* CONTRASTE: SEÇÃO FULL-BLEED DARK */}
-                <div className="w-full bg-[#050505] py-20 mb-24 border-y border-white/5 reveal">
-                  <div className="max-w-5xl mx-auto px-6 xl:pl-32 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-12">
+                {/* CONTRASTE: SEÇÃO FULL-BLEED DARK (Respiro Visual) */}
+                <div className="w-full bg-[#000000] py-20 mb-24 border-y border-white/5 reveal">
+                  <div className="max-w-5xl mx-auto px-6 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-12">
                     <div className="max-w-lg">
                       <span className="text-[#D4AF37] text-[8px] tracking-[0.4em] uppercase mb-4 block">Nossa Essência</span>
                       <h3 className="text-3xl font-serif leading-tight text-white mb-4">O Tempo como <br/><span className="italic text-[#D4AF37]">Ingrediente.</span></h3>
@@ -531,45 +521,55 @@
                   </div>
                 </div>
 
-                {/* 02. A MARINADA (App Cards List) */}
-                <section id="passo-marinada" className={`max-w-5xl mx-auto px-6 xl:pl-32 mb-24 reveal scroll-mt-24 transition-opacity duration-700 ${!builder.corte ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
+                {/* 02. A MARINADA (App Cards List c/ Imagens) */}
+                <section id="passo-marinada" className={`max-w-5xl mx-auto px-6 mb-24 reveal scroll-mt-24 transition-opacity duration-700 ${!builder.corte ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
                   <div className="flex items-center gap-4 mb-6">
                     <span className="text-[#D4AF37] font-serif text-3xl italic opacity-30">02</span>
                     <h3 className="text-xs uppercase tracking-[0.3em] font-light text-white/70">A Infusão</h3>
                   </div>
-                  <div className="flex flex-col gap-3">
+                  <div className="grid md:grid-cols-3 gap-6">
                     {BUILDER_DATA.marinadas.map(item => (
-                      <div key={item.id} onClick={() => handleSelectMarinada(item)} className={`app-card p-5 flex items-center justify-between cursor-pointer ${builder.marinada?.id === item.id ? 'selected' : ''}`}>
-                        <div className="flex items-center gap-5">
-                          <div className={`w-3.5 h-3.5 rounded-full border flex-shrink-0 ${builder.marinada?.id === item.id ? 'border-[#D4AF37] bg-[#D4AF37]' : 'border-white/20'} transition-colors`}></div>
-                          <div>
-                            <h4 className={`text-sm font-serif transition-colors ${builder.marinada?.id === item.id ? 'text-[#D4AF37]' : 'text-white'}`}>{item.name}</h4>
-                            <p className="text-[9px] text-white/40 font-light mt-1 leading-relaxed">{item.desc}</p>
-                          </div>
+                      <div key={item.id} onClick={() => handleSelectMarinada(item)} className={`app-card overflow-hidden group cursor-pointer border ${builder.marinada?.id === item.id ? 'border-[#D4AF37]' : 'border-white/5'}`}>
+                        <div className="h-32 w-full relative bg-black">
+                          <img src={item.img} loading="lazy" className={`w-full h-full object-cover transition-all duration-700 ${builder.marinada?.id === item.id ? 'brightness-100 scale-105' : 'brightness-50 group-hover:brightness-90'}`} />
+                          {builder.marinada?.id === item.id && (
+                            <div className="absolute top-2 right-2 bg-[#D4AF37] text-black w-5 h-5 rounded-full flex items-center justify-center">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-5">
+                          <h4 className={`text-sm font-serif mb-1 transition-colors ${builder.marinada?.id === item.id ? 'text-[#D4AF37]' : 'text-white group-hover:text-[#D4AF37]'}`}>{item.name}</h4>
+                          <p className="text-[9px] text-white/40 font-light leading-relaxed">{item.desc}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </section>
 
-                {/* 03. O RECHEIO (App Cards List) */}
-                <section id="passo-recheio" className={`max-w-5xl mx-auto px-6 xl:pl-32 mb-24 reveal scroll-mt-24 transition-all duration-700 ${(!builder.marinada || builder.corte?.type === 'classico') ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
+                {/* 03. O RECHEIO (App Cards List c/ Imagens) */}
+                <section id="passo-recheio" className={`max-w-5xl mx-auto px-6 mb-24 reveal scroll-mt-24 transition-all duration-700 ${(!builder.marinada || builder.corte?.type === 'classico') ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
                   <div className="flex items-center gap-4 mb-6 relative">
                     <span className="text-[#D4AF37] font-serif text-3xl italic opacity-30">03</span>
                     <h3 className="text-xs uppercase tracking-[0.3em] font-light text-white/70">A Arte do Recheio</h3>
                     {builder.corte?.type === 'classico' && (
-                      <span className="absolute right-0 text-[8px] text-[#D4AF37] uppercase tracking-widest bg-[#D4AF37]/10 px-3 py-1 rounded">Bloqueado para Corte Clássico</span>
+                      <span className="absolute right-0 text-[8px] text-[#D4AF37] uppercase tracking-widest bg-[#D4AF37]/10 px-3 py-1 rounded">Bloqueado p/ Clássico</span>
                     )}
                   </div>
-                  <div className="flex flex-col gap-3">
+                  <div className="grid md:grid-cols-3 gap-6">
                     {BUILDER_DATA.recheios.map(item => (
-                      <div key={item.id} onClick={() => handleSelectRecheio(item)} className={`app-card p-5 flex items-center justify-between cursor-pointer ${builder.recheio?.id === item.id ? 'selected' : ''}`}>
-                        <div className="flex items-center gap-5">
-                          <div className={`w-3.5 h-3.5 rounded-full border flex-shrink-0 ${builder.recheio?.id === item.id ? 'border-[#D4AF37] bg-[#D4AF37]' : 'border-white/20'} transition-colors`}></div>
-                          <div>
-                            <h4 className={`text-sm font-serif transition-colors ${builder.recheio?.id === item.id ? 'text-[#D4AF37]' : 'text-white'}`}>{item.name}</h4>
-                            <p className="text-[9px] text-white/40 font-light mt-1 leading-relaxed">{item.desc}</p>
-                          </div>
+                      <div key={item.id} onClick={() => handleSelectRecheio(item)} className={`app-card overflow-hidden group cursor-pointer border ${builder.recheio?.id === item.id ? 'border-[#D4AF37]' : 'border-white/5'}`}>
+                        <div className="h-32 w-full relative bg-black">
+                          <img src={item.img} loading="lazy" className={`w-full h-full object-cover transition-all duration-700 ${builder.recheio?.id === item.id ? 'brightness-100 scale-105' : 'brightness-50 group-hover:brightness-90'}`} />
+                          {builder.recheio?.id === item.id && (
+                            <div className="absolute top-2 right-2 bg-[#D4AF37] text-black w-5 h-5 rounded-full flex items-center justify-center">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-5">
+                          <h4 className={`text-sm font-serif mb-1 transition-colors ${builder.recheio?.id === item.id ? 'text-[#D4AF37]' : 'text-white group-hover:text-[#D4AF37]'}`}>{item.name}</h4>
+                          <p className="text-[9px] text-white/40 font-light leading-relaxed">{item.desc}</p>
                         </div>
                       </div>
                     ))}
@@ -577,17 +577,17 @@
                 </section>
 
                 {/* BOTÃO DESKTOP FINALIZAR CONSTRUÇÃO */}
-                <div className={`max-w-5xl mx-auto px-6 xl:pl-32 mb-32 reveal transition-all duration-1000 hidden md:block ${(!builder.corte || !builder.marinada || (builder.corte.type === 'recheado' && !builder.recheio)) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                <div className={`max-w-5xl mx-auto px-6 mb-32 reveal transition-all duration-1000 hidden md:block text-center md:text-left ${(!builder.corte || !builder.marinada || (builder.corte.type === 'recheado' && !builder.recheio)) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                    <button 
                       onClick={addCustomChickenToCart}
                       className="w-auto px-10 py-4 border border-[#D4AF37]/40 bg-[#D4AF37]/10 rounded-full text-[9px] uppercase tracking-[0.3em] hover:bg-[#D4AF37] hover:text-black transition-all duration-500 font-bold text-[#D4AF37]"
                     >
-                      Adicionar à Seleção (R$ {builder.corte?.price})
+                      Adicionar Seleção (R$ {builder.corte?.price})
                     </button>
                 </div>
 
-                {/* 04. EXTRAS (Farofas Premium e Molhos Artesanais - Estilo Cards App) */}
-                <section id="passo-complementos" className="max-w-5xl mx-auto px-6 xl:pl-32 mb-20 reveal scroll-mt-24 border-t border-white/5 pt-16">
+                {/* 04. EXTRAS COM MINIATURAS VISUAIS */}
+                <section id="passo-complementos" className="max-w-5xl mx-auto px-6 mb-20 reveal scroll-mt-24 border-t border-white/5 pt-16">
                   <div className="mb-10 text-center md:text-left">
                     <span className="text-[#D4AF37] text-[9px] tracking-[0.4em] uppercase block mb-2 font-light">Para Acompanhar</span>
                     <h3 className="text-2xl font-serif text-white">Toque Final</h3>
@@ -599,12 +599,15 @@
                       <h4 className="font-sans text-[10px] uppercase tracking-[0.2em] text-white/50 mb-4 pl-2">Farofas Premium</h4>
                       <div className="flex flex-col gap-3">
                         {EXTRAS.farofas.map(item => (
-                          <div key={item.id} className="app-card p-5 flex justify-between items-center group">
-                            <div className="max-w-[70%]">
-                              <h5 className="font-serif text-sm text-white group-hover:text-[#D4AF37] transition-colors">{item.name}</h5>
-                              <p className="text-[9px] text-white/40 mt-1 leading-relaxed">{item.desc}</p>
+                          <div key={item.id} className="app-card p-3 flex justify-between items-center group bg-[#0A0A0A]">
+                            <div className="flex items-center gap-4">
+                              <img src={item.img} className="w-14 h-14 rounded-lg object-cover opacity-80 group-hover:opacity-100" />
+                              <div>
+                                <h5 className="font-serif text-sm text-white group-hover:text-[#D4AF37] transition-colors">{item.name}</h5>
+                                <p className="text-[8px] text-white/40 mt-1 leading-relaxed uppercase tracking-widest">{item.desc}</p>
+                              </div>
                             </div>
-                            <div className="flex flex-col items-end gap-2">
+                            <div className="flex flex-col items-end gap-2 pr-2">
                               <span className="font-mono text-white/60 text-xs">R$ {item.price}</span>
                               <button onClick={() => addExtraToCart(item)} className="text-[#D4AF37] hover:text-white transition-colors bg-[#D4AF37]/10 rounded-full p-1.5 px-3 text-[8px] uppercase tracking-widest font-bold">
                                 Incluir
@@ -620,12 +623,15 @@
                       <h4 className="font-sans text-[10px] uppercase tracking-[0.2em] text-white/50 mb-4 pl-2">Molhos Artesanais</h4>
                       <div className="flex flex-col gap-3">
                         {EXTRAS.molhos.map(item => (
-                          <div key={item.id} className="app-card p-5 flex justify-between items-center group">
-                            <div className="max-w-[70%]">
-                              <h5 className="font-serif text-sm text-white group-hover:text-[#D4AF37] transition-colors">{item.name}</h5>
-                              <p className="text-[9px] text-white/40 mt-1 leading-relaxed">{item.desc}</p>
+                          <div key={item.id} className="app-card p-3 flex justify-between items-center group bg-[#0A0A0A]">
+                            <div className="flex items-center gap-4">
+                              <img src={item.img} className="w-14 h-14 rounded-lg object-cover opacity-80 group-hover:opacity-100" />
+                              <div>
+                                <h5 className="font-serif text-sm text-white group-hover:text-[#D4AF37] transition-colors">{item.name}</h5>
+                                <p className="text-[8px] text-white/40 mt-1 leading-relaxed uppercase tracking-widest">{item.desc}</p>
+                              </div>
                             </div>
-                            <div className="flex flex-col items-end gap-2">
+                            <div className="flex flex-col items-end gap-2 pr-2">
                               <span className="font-mono text-white/60 text-xs">R$ {item.price}</span>
                               <button onClick={() => addExtraToCart(item)} className="text-[#D4AF37] hover:text-white transition-colors bg-[#D4AF37]/10 rounded-full p-1.5 px-3 text-[8px] uppercase tracking-widest font-bold">
                                 Incluir
@@ -691,17 +697,17 @@
                       <div className="space-y-8">
                         <div className="space-y-3 border-b border-white/5 pb-8">
                           {cart.map(item => (
-                            <div key={item.id} className="app-card p-4 flex justify-between items-start">
+                            <div key={item.id} className="app-card bg-[#111] p-3 flex justify-between items-start">
                               <div className="max-w-[70%]">
                                 <p className="font-serif text-sm text-[#F4F1EA] leading-tight">{item.name}</p>
                                 <p className="text-[8px] font-sans opacity-40 uppercase mt-1 leading-relaxed">{item.desc}</p>
                                 <span className="text-[9px] font-mono opacity-80 text-[#D4AF37] mt-2 inline-block">Qtd: {item.qty}</span>
                               </div>
-                              <div className="flex flex-col items-end justify-between h-full">
+                              <div className="flex flex-col items-end justify-between h-full gap-3">
                                 <button onClick={() => removeFromCart(item.id)} className="text-white/20 hover:text-red-500 transition-colors">
                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
-                                <span className="font-mono text-white text-xs mt-3">R$ {item.price * item.qty}</span>
+                                <span className="font-mono text-white text-xs mt-auto">R$ {item.price * item.qty}</span>
                               </div>
                             </div>
                           ))}
@@ -712,19 +718,19 @@
                           <div className="space-y-3">
                             <div className="flex flex-col gap-1.5">
                               <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Horário</label>
-                              <select value={horario} onChange={(e) => setHorario(e.target.value)} className="w-full app-card px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors">
+                              <select value={horario} onChange={(e) => setHorario(e.target.value)} className="w-full app-card bg-[#111] px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors">
                                 {HORARIOS_ENTREGA.map(h => <option key={h} value={h}>{h}</option>)}
                               </select>
                             </div>
                             <div className="flex flex-col gap-1.5">
                               <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Bairro</label>
-                              <select value={bairro} onChange={(e) => setBairro(e.target.value)} className="w-full app-card px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors">
+                              <select value={bairro} onChange={(e) => setBairro(e.target.value)} className="w-full app-card bg-[#111] px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors">
                                 {Object.keys(BAIRROS_FRETE).map(b => <option key={b} value={b}>{b}</option>)}
                               </select>
                             </div>
                             <div className="flex flex-col gap-1.5">
                               <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Observações para o Entregador</label>
-                              <input type="text" value={instrucoes} onChange={(e) => setInstrucoes(e.target.value)} placeholder="Apt, bloco, ponto de referência..." className="w-full app-card px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors placeholder:text-white/20" />
+                              <input type="text" value={instrucoes} onChange={(e) => setInstrucoes(e.target.value)} placeholder="Apt, bloco, ponto de ref..." className="w-full app-card bg-[#111] px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors placeholder:text-white/20" />
                             </div>
                           </div>
                         </div>
