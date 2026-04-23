@@ -1,38 +1,40 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
 /**
- * DORÉ | Boutique de Assados (Foco em Entrega de Luxo)
- * REVISÃO SENIOR: Correção de sintaxe e otimização de layout.
+ * DORÉ | Boutique de Assados
+ * REVISÃO DE ATIVOS: Integração de Imagens Reais (Recheado, Sem Recheio e Sensorial).
+ * Estética: Slate/Cimento Queimado + Glassmorphism Premium.
  * Cores: Midnight Espresso (#0D0C0A), Champagne Gold (#D4AF37), Creme (#F4F1EA).
  */
 
 const LOGO_URL = "https://alisachapeco.com.br/assets/images/image19.png?v=5f40d70b";
 const PATTERN_URL = "https://alisachapeco.com.br/assets/images/image18.png?v=337fcc30";
+const SENSORIAL_IMG = "https://alisachapeco.com.br/assets/images/image21.png?v=e9c990c3";
 
 const PRODUCTS = {
   frangos: [
     { 
       id: 'f1', 
       name: 'DORÉ Clássico', 
-      desc: 'Assado lentamente em baixa temperatura. Crosta de ouro e suculência preservada.', 
+      desc: 'Assado lentamente em baixa temperatura. Crosta de ouro e suculência preservada na essência.', 
       price: 115, 
-      img: 'https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?q=80&w=800&auto=format&fit=crop' 
+      img: 'https://alisachapeco.com.br/assets/images/image20.jpg?v=e9c990c3' 
     },
     { 
       id: 'f2', 
       name: 'DORÉ Recheado', 
-      desc: 'Frango nobre recheado com farofa artesanal de miúdos e iguarias da boutique.', 
+      desc: 'Frango nobre recheado com farofa artesanal de miúdos, sálvia e especiarias da boutique.', 
       price: 145, 
-      img: 'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=800&auto=format&fit=crop' 
+      img: 'https://alisachapeco.com.br/assets/images/image18.jpg?v=e9c990c3' 
     }
   ],
   farofas: [
     { id: 'a1', name: 'Farofa de Pistache & Bacon', desc: 'Pistaches selecionados e bacon artesanal defumado.', price: 42 },
-    { id: 'a2', name: 'Farofa Panko na Manteiga', desc: 'Crocância extrema com manteiga de garrafa.', price: 35 }
+    { id: 'a2', name: 'Farofa Panko na Manteiga', desc: 'Crocância extrema com autêntica manteiga de garrafa.', price: 35 }
   ],
   molhos: [
     { id: 'm1', name: 'Aioli de Alho Negro', desc: 'Sabor umami profundo e notas adocicadas.', price: 18 },
-    { id: 'm2', name: 'Chimichurri da Boutique', desc: 'Ervas frescas e azeite extra virgem.', price: 15 },
+    { id: 'm2', name: 'Chimichurri da Boutique', desc: 'Ervas frescas e azeite extra virgem de primeira prensa.', price: 15 },
     { id: 'm3', name: 'Mostarda & Mel Silvestre', desc: 'O equilíbrio nobre entre picância e doçura.', price: 16 }
   ]
 };
@@ -88,27 +90,27 @@ export default function App() {
 
   // --- INTERFACES ---
 
-  // 1. GATE (Abertura Unificada com Lanterna e Monograma)
+  // 1. GATE (Portão de Luxo com Spotlight)
   if (stage === 'gate') {
     return (
-      <div id="luxury-gate" className="fixed inset-0 bg-[#0D0C0A] flex flex-col items-center justify-center z-[9999] overflow-hidden">
+      <div id="luxury-gate" className="fixed inset-0 flex flex-col items-center justify-center z-[9999] overflow-hidden slate-bg">
         <div id="spotlight-wrapper"></div>
         <div className="pattern-layer" style={{ backgroundImage: `url(${PATTERN_URL})` }}></div>
         
         <div className="relative z-20 text-center flex flex-col items-center px-6">
           <div className="mb-16 fade-in-up">
-            <div className="absolute inset-0 bg-[#D4AF37] blur-[140px] opacity-10"></div>
-            <img src={LOGO_URL} alt="DORÉ" className="h-40 md:h-64 relative z-10" />
+            <div className="absolute inset-0 bg-[#D4AF37] blur-[140px] opacity-15"></div>
+            <img src={LOGO_URL} alt="DORÉ" className="h-40 md:h-64 relative z-10 drop-shadow-2xl" />
           </div>
           
           <div className="flex flex-col items-center gap-6 fade-in-up delay-1">
-            <div className="w-[1px] h-20 bg-gradient-to-b from-transparent via-[#D4AF37] to-transparent"></div>
+            <div className="w-[1px] h-20 bg-gradient-to-b from-transparent via-[#D4AF37] to-transparent opacity-50"></div>
             <button 
               onClick={() => {
                 if (window.navigator.vibrate) window.navigator.vibrate([60, 40, 60]);
                 setStage('shop');
               }}
-              className="group relative px-16 py-6 border border-[#D4AF37]/30 bg-transparent text-[#D4AF37] text-[11px] tracking-[0.8em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black"
+              className="group relative px-16 py-6 border border-[#D4AF37]/30 bg-black/20 backdrop-blur-md text-[#D4AF37] text-[11px] tracking-[0.8em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black"
             >
               <span className="relative z-10 font-bold">Toque para Iniciar</span>
               <div className="absolute inset-0 bg-[#D4AF37] translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
@@ -117,17 +119,17 @@ export default function App() {
         </div>
 
         <style>{`
-          #luxury-gate { position: fixed; inset: 0; background-color: #0D0C0A; }
+          #luxury-gate { position: fixed; inset: 0; }
           #spotlight-wrapper { 
             position: fixed; inset: 0; z-index: 5; pointer-events: none; 
-            background: radial-gradient(circle 500px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(212, 175, 55, 0.15) 0%, transparent 70%); 
+            background: radial-gradient(circle 500px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(212, 175, 55, 0.18) 0%, transparent 70%); 
             mask-image: radial-gradient(circle 500px at var(--mouse-x, 50%) var(--mouse-y, 50%), black 10%, rgba(0,0,0,0.3) 50%, transparent 100%); 
             -webkit-mask-image: radial-gradient(circle 500px at var(--mouse-x, 50%) var(--mouse-y, 50%), black 10%, rgba(0,0,0,0.3) 50%, transparent 100%); 
           }
           .pattern-layer { 
             position: absolute; inset: -50%; width: 200%; height: 200%; 
             background-size: 80px; background-repeat: repeat; transform: rotate(-12deg); 
-            opacity: 0.18; filter: grayscale(1); mix-blend-mode: screen; 
+            opacity: 0.12; filter: grayscale(1) contrast(1.2); mix-blend-mode: overlay; 
           }
           @keyframes fadeInUpFixed { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           .fade-in-up { animation: fadeInUpFixed 1.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
@@ -137,15 +139,17 @@ export default function App() {
     );
   }
 
-  // 2. LOJA (Interface Boutique)
   return (
-    <div className="min-h-screen bg-[#0D0C0A] text-[#F4F1EA] font-sans selection:bg-[#D4AF37] selection:text-black">
+    <div className="min-h-screen slate-bg text-[#F4F1EA] font-sans selection:bg-[#D4AF37] selection:text-black">
       
-      {/* Header Fixo */}
-      <nav className="fixed top-0 w-full z-40 bg-[#0D0C0A]/90 backdrop-blur-3xl border-b border-white/5">
+      {/* Background Texture Overlay */}
+      <div className="fixed inset-0 opacity-40 pointer-events-none noise-bg mix-blend-soft-light"></div>
+
+      {/* Header Fixo - Glassmorphism */}
+      <nav className="fixed top-0 w-full z-40 bg-black/40 backdrop-blur-3xl border-b border-white/5">
         <div className="max-w-6xl mx-auto px-6 h-24 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <img src={LOGO_URL} alt="DORÉ" className="h-10 md:h-12" />
+            <img src={LOGO_URL} alt="DORÉ" className="h-10 md:h-12 drop-shadow-lg" />
             <div className="flex flex-col border-l border-white/10 pl-4">
               <span className="text-[10px] tracking-[0.3em] uppercase text-[#D4AF37] font-semibold leading-tight text-shadow-glow">Boutique</span>
               <span className="text-[8px] tracking-[0.4em] uppercase opacity-40">de Assados</span>
@@ -157,7 +161,7 @@ export default function App() {
               <p className="text-[9px] tracking-[0.3em] uppercase opacity-30 group-hover:opacity-100 transition-opacity">Sua Reserva</p>
               <p className="text-sm font-mono text-[#D4AF37]">R$ {total.toFixed(2)}</p>
             </div>
-            <div className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#D4AF37] transition-all relative">
+            <div className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#D4AF37] group-hover:bg-[#D4AF37]/5 transition-all relative">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
               {cart.length > 0 && <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#D4AF37] rounded-full animate-pulse shadow-[0_0_10px_#D4AF37]"></span>}
             </div>
@@ -167,19 +171,19 @@ export default function App() {
 
       <main className="pt-40 pb-32 px-6 max-w-6xl mx-auto">
         
-        {/* Seção de Hero */}
+        {/* Seção Hero */}
         <header className="text-center mb-32 reveal visible">
           <span className="text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase mb-6 block font-light">Chapecó • Produção Artesanal</span>
-          <h2 className="text-5xl md:text-8xl font-serif leading-tight mb-10 tracking-tight">
+          <h2 className="text-5xl md:text-8xl font-serif leading-tight mb-10 tracking-tight text-white drop-shadow-2xl">
             Crosta de Ouro.<br/>
-            <span className="italic text-white/30 font-light italic">Suculência Preservada.</span>
+            <span className="italic text-white/30 font-light">Suculência Preservada.</span>
           </h2>
           <p className="text-white/40 font-light max-w-2xl mx-auto leading-relaxed text-lg italic">
-            "A perfeição exige paciência. Vinte e quatro horas de infusão botânica para um dourado inesquecível à mesa."
+            "A arte da rotisserie entregue com exclusividade. Vinte e quatro horas de infusão para o momento que você merece."
           </p>
         </header>
 
-        {/* 01. Seleção de Assados */}
+        {/* 01. Seleção de Assados - IMAGENS REAIS */}
         <section className="mb-40">
           <div className="flex items-center gap-6 mb-16">
             <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">01</span>
@@ -190,18 +194,18 @@ export default function App() {
             {PRODUCTS.frangos.map(item => (
               <div key={item.id} className="group glass-panel p-3 overflow-hidden rounded-[3rem]">
                 <div className="aspect-[16/10] rounded-[2.5rem] overflow-hidden mb-8 relative">
-                  <img src={item.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 opacity-60 group-hover:opacity-100" alt={item.name} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0D0C0A] via-transparent to-transparent"></div>
+                  <img src={item.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 opacity-80 group-hover:opacity-100 mix-blend-luminosity hover:mix-blend-normal" alt={item.name} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
                 </div>
                 <div className="px-8 pb-10 text-center md:text-left">
                   <div className="flex flex-col md:flex-row justify-between items-baseline mb-6">
                     <h4 className="text-4xl font-serif text-[#D4AF37] mb-2 md:mb-0">{item.name}</h4>
                     <span className="font-mono text-xl opacity-60">R$ {item.price}</span>
                   </div>
-                  <p className="text-sm text-white/30 font-light mb-10 h-16 leading-relaxed max-w-sm">{item.desc}</p>
+                  <p className="text-sm text-white/40 font-light mb-10 h-16 leading-relaxed max-w-sm">{item.desc}</p>
                   <button 
                     onClick={() => addToCart(item)}
-                    className="w-full py-6 border border-[#D4AF37]/20 rounded-2xl text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-700 font-bold"
+                    className="w-full py-6 border border-[#D4AF37]/30 bg-white/5 rounded-2xl text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-700 font-bold backdrop-blur-md"
                   >
                     Adicionar à Reserva
                   </button>
@@ -211,7 +215,34 @@ export default function App() {
           </div>
         </section>
 
-        {/* 02. Acompanhamentos */}
+        {/* Unboxing / Sensorial Section - NOVA IMAGEM */}
+        <section className="mb-40">
+          <div className="glass-panel overflow-hidden rounded-[3rem] grid lg:grid-cols-2 items-center">
+            <div className="p-12 md:p-20 order-2 lg:order-1">
+              <span className="text-[#D4AF37] text-[10px] tracking-[0.5em] uppercase mb-8 block">A Experiência DORÉ</span>
+              <h3 className="text-4xl md:text-5xl font-serif mb-8 leading-tight">O Ritual do<br/><span className="italic">Desejo.</span></h3>
+              <p className="text-white/40 font-light leading-relaxed mb-10 text-lg">
+                Não é apenas uma entrega, é um protocolo de luxo. Receba o seu assado em embalagem térmica boutique, mantendo a crosta e os sucos exatamente como saíram da nossa boutique.
+              </p>
+              <div className="flex gap-10">
+                <div>
+                  <span className="block text-[#D4AF37] font-mono text-xl mb-1">24h</span>
+                  <span className="text-[9px] uppercase tracking-widest opacity-40">Infusão</span>
+                </div>
+                <div className="w-[1px] h-10 bg-white/10"></div>
+                <div>
+                  <span className="block text-[#D4AF37] font-mono text-xl mb-1">85°C</span>
+                  <span className="text-[9px] uppercase tracking-widest opacity-40">Cocção</span>
+                </div>
+              </div>
+            </div>
+            <div className="aspect-square lg:aspect-auto h-full overflow-hidden order-1 lg:order-2">
+              <img src={SENSORIAL_IMG} alt="Sensorial Assado" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+            </div>
+          </div>
+        </section>
+
+        {/* 02. Complementos */}
         <section className="mb-40">
           <div className="flex items-center gap-6 mb-16">
             <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">02</span>
@@ -229,7 +260,7 @@ export default function App() {
                   <p className="font-mono text-[#D4AF37] text-lg mb-6">R$ {item.price}</p>
                   <button 
                     onClick={() => addToCart(item)}
-                    className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-all duration-500 hover:scale-110"
+                    className="w-14 h-14 rounded-full border border-white/10 bg-white/5 flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-all duration-500 hover:scale-110 backdrop-blur-md"
                   >
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 5v14M5 12h14"/></svg>
                   </button>
@@ -271,13 +302,13 @@ export default function App() {
 
       {/* CARRINHO GAVETA */}
       <div className={`fixed inset-0 z-50 transition-all duration-700 ${isCartOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsCartOpen(false)}></div>
-        <div className={`absolute top-0 right-0 h-full w-full max-w-md bg-[#0D0C0A] border-l border-white/5 shadow-2xl flex flex-col transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setIsCartOpen(false)}></div>
+        <div className={`absolute top-0 right-0 h-full w-full max-w-md bg-black/40 backdrop-blur-[60px] border-l border-white/10 shadow-2xl flex flex-col transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           
-          <div className="p-10 border-b border-white/5 flex justify-between items-center">
+          <div className="p-10 border-b border-white/10 flex justify-between items-center">
             <h4 className="text-3xl font-serif tracking-[0.1em]">Sua Reserva</h4>
-            <button onClick={() => setIsCartOpen(false)} className="opacity-20 hover:opacity-100 transition-opacity">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            <button onClick={() => setIsCartOpen(false)} className="opacity-40 hover:opacity-100 transition-opacity">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
           </div>
 
@@ -285,7 +316,7 @@ export default function App() {
             {cart.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center opacity-10 text-center">
                 <p className="text-[10px] uppercase tracking-[0.5em] mb-6 font-light">Sua lista está vazia</p>
-                <div className="w-16 h-[1px] bg-white/20"></div>
+                <div className="w-16 h-[1px] bg-white/40"></div>
               </div>
             ) : (
               cart.map(item => (
@@ -296,8 +327,8 @@ export default function App() {
                   </div>
                   <div className="flex items-center gap-6">
                     <span className="font-mono text-[#D4AF37]">R$ {item.price * item.qty}</span>
-                    <button onClick={() => removeFromCart(item.id)} className="text-white/10 hover:text-red-500 transition-colors">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button onClick={() => removeFromCart(item.id)} className="text-white/20 hover:text-red-500 transition-colors">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                   </div>
                 </div>
@@ -306,23 +337,22 @@ export default function App() {
           </div>
 
           {cart.length > 0 && (
-            <div className="p-10 border-t border-white/5 bg-[#0A0A09] space-y-8">
+            <div className="p-10 border-t border-white/10 bg-black/40 backdrop-blur-xl space-y-8">
               <div className="space-y-4">
                 <div className="flex justify-between text-[10px] text-white/30 tracking-[0.2em] uppercase">
                   <span>Subtotal</span>
                   <span className="font-mono">R$ {subtotal.toFixed(2)}</span>
                 </div>
                 
-                {/* Sistema de Frete Inteligente */}
                 <div className="space-y-4 pt-4 border-t border-white/5">
                   <div className="flex justify-between items-center text-[10px] text-white/30 tracking-[0.2em] uppercase">
                     <span>Localização</span>
                     <select 
                       value={bairro} 
                       onChange={(e) => setBairro(e.target.value)}
-                      className="bg-transparent text-[#D4AF37] border-none focus:ring-0 cursor-pointer font-sans text-[10px] uppercase tracking-widest"
+                      className="bg-transparent text-[#D4AF37] border-none focus:ring-0 cursor-pointer font-sans text-[10px] uppercase tracking-widest outline-none"
                     >
-                      {Object.keys(BAIRROS_FRETE).map(b => <option key={b} value={b} className="bg-[#0D0C0A]">{b}</option>)}
+                      {Object.keys(BAIRROS_FRETE).map(b => <option key={b} value={b} className="bg-neutral-900">{b}</option>)}
                     </select>
                   </div>
                   <div className="flex justify-between text-[10px] text-white/30 tracking-[0.2em] uppercase items-center">
@@ -338,7 +368,7 @@ export default function App() {
               </div>
               
               <button 
-                className="w-full bg-[#D4AF37] text-[#0D0C0A] py-7 rounded-[2rem] font-bold uppercase tracking-[0.4em] text-[10px] hover:bg-[#F4F1EA] transition-all duration-700 mt-8 shadow-[0_20px_50px_-10px_rgba(212,175,55,0.3)]"
+                className="w-full bg-[#D4AF37] text-[#0D0C0A] py-7 rounded-[2rem] font-bold uppercase tracking-[0.4em] text-[10px] hover:bg-[#F4F1EA] transition-all duration-700 mt-8 shadow-[0_20px_50px_-10px_rgba(212,175,55,0.4)]"
                 onClick={() => {
                   const itemsMsg = cart.map(i => `• ${i.name} (${i.qty}x)`).join('%0A');
                   const msg = `Olá! Gostaria de confirmar minha reserva DORÉ.%0A%0A*Pedido:*%0A${itemsMsg}%0A%0A*Local:* ${bairro}%0A*Total:* R$ ${total.toFixed(2)}%0A%0A_Aguardando horários disponíveis._`;
@@ -357,21 +387,41 @@ export default function App() {
         
         :root { --mouse-x: 50%; --mouse-y: 50%; }
         
-        body { background-color: #0D0C0A; font-family: 'Inter', sans-serif; margin: 0; }
+        body { 
+          background-color: #0D0C0A; 
+          font-family: 'Inter', sans-serif; 
+          margin: 0; 
+          overflow-x: hidden;
+        }
+
+        /* --- BACKGROUND CIMENTO QUEIMADO --- */
+        .slate-bg {
+          background-color: #0D0C0A;
+          background-image: 
+            radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.8) 0%, #0D0C0A 100%),
+            url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+          background-attachment: fixed;
+        }
+
+        .noise-bg {
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
         
+        /* --- GLASSMORPHISM REFINADO --- */
         .glass-panel {
-          background: rgba(255, 255, 255, 0.01);
-          backdrop-filter: blur(50px);
-          -webkit-backdrop-filter: blur(50px);
-          border: 1px solid rgba(255, 255, 255, 0.03);
+          background: rgba(255, 255, 255, 0.02);
+          backdrop-filter: blur(25px);
+          -webkit-backdrop-filter: blur(25px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
           transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
         
         .glass-panel:hover {
-          border-color: rgba(212, 175, 55, 0.15);
-          background: rgba(255, 255, 255, 0.02);
-          transform: translateY(-12px);
-          box-shadow: 0 50px 100px rgba(0,0,0,0.7);
+          border-color: rgba(212, 175, 55, 0.2);
+          background: rgba(255, 255, 255, 0.04);
+          transform: translateY(-8px);
+          box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
         }
 
         .text-shadow-glow { text-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
@@ -381,7 +431,7 @@ export default function App() {
 
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #0D0C0A; }
-        ::-webkit-scrollbar-thumb { background: #222; border-radius: 20px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 20px; }
         
         select { appearance: none; -webkit-appearance: none; }
       `}</style>
