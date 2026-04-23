@@ -1,38 +1,39 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 /**
  * DORÉ | Boutique de Assados
- * Arquitetura de Ultra Luxo: Unificação de Gate/Preloader com efeito Spotlight.
- * Sistema de Pedidos Modular: Frangos, Farofas e Molhos.
- * Carrinho Inteligente com Frete por Bairro.
+ * Arquitetura de Ultra Luxo: Spotlight Gate Unificado, Pedidos Modulares e Smart Cart.
+ * Cores: Midnight Espresso (#0A0908), Champagne Gold (#D4AF37), Creme (#F4F1EA).
  */
 
-// --- CONFIGURAÇÃO DE PRODUTOS ---
+const LOGO_URL = "https://alisachapeco.com.br/assets/images/image19.png?v=5f40d70b";
+const PATTERN_URL = "https://alisachapeco.com.br/assets/images/image18.png?v=337fcc30";
+
 const PRODUCTS = {
   frangos: [
     { 
       id: 'f1', 
       name: 'DORÉ Clássico', 
-      desc: 'Assado lentamente em baixa temperatura. Crosta dourada e suculência preservada.', 
+      desc: 'Assado lentamente em baixa temperatura. Crosta de ouro e suculência preservada na essência.', 
       price: 115, 
       img: 'https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?q=80&w=800&auto=format&fit=crop' 
     },
     { 
       id: 'f2', 
       name: 'DORÉ Recheado', 
-      desc: 'Frango nobre recheado com farofa artesanal de miúdos e iguarias da casa.', 
+      desc: 'Frango nobre recheado com farofa artesanal de miúdos, sálvia e especiarias da boutique.', 
       price: 145, 
       img: 'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=800&auto=format&fit=crop' 
     }
   ],
   farofas: [
-    { id: 'a1', name: 'Farofa de Pistache', desc: 'Pistaches selecionados, bacon artesanal e manteiga noisette.', price: 42 },
-    { id: 'a2', name: 'Farofa Panko & Manteiga de Garrafa', desc: 'Crocância extrema finalizada com manteiga de garrafa.', price: 35 }
+    { id: 'a1', name: 'Farofa de Pistache & Bacon', desc: 'Pistaches selecionados e bacon artesanal defumado.', price: 42 },
+    { id: 'a2', name: 'Farofa Panko na Manteiga', desc: 'Crocância extrema com autêntica manteiga de garrafa.', price: 35 }
   ],
   molhos: [
     { id: 'm1', name: 'Aioli de Alho Negro', desc: 'Sabor umami profundo e notas adocicadas.', price: 18 },
-    { id: 'm2', name: 'Chimichurri da Boutique', desc: 'Ervas frescas e azeite extra virgem.', price: 15 },
-    { id: 'm3', name: 'Mostarda & Mel Silvestre', desc: 'O equilíbrio perfeito entre picância e doçura.', price: 16 }
+    { id: 'm2', name: 'Chimichurri da Boutique', desc: 'Ervas frescas e azeite extra virgem de primeira prensa.', price: 15 },
+    { id: 'm3', name: 'Mostarda & Mel Silvestre', desc: 'O equilíbrio nobre entre picância e doçura.', price: 16 }
   ]
 };
 
@@ -45,16 +46,13 @@ const BAIRROS_FRETE = {
   'Outros': 18
 };
 
-const LOGO_URL = "https://alisachapeco.com.br/assets/images/image19.png?v=5f40d70b";
-const PATTERN_URL = "https://alisachapeco.com.br/assets/images/image18.png?v=337fcc30";
-
 export default function App() {
   const [stage, setStage] = useState('gate'); // gate -> shop
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [bairro, setBairro] = useState('Centro');
 
-  // Efeito Spotlight (Lanterna)
+  // Spotlight Tracking (Lanterna Sensorial)
   useEffect(() => {
     const handleMove = (e) => {
       const x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
@@ -70,15 +68,8 @@ export default function App() {
     };
   }, []);
 
-  const enterExperience = () => {
-    if (window.navigator.vibrate) {
-      window.navigator.vibrate([60, 40, 60]);
-    }
-    setStage('shop');
-  };
-
   const addToCart = (product) => {
-    if (window.navigator.vibrate) window.navigator.vibrate(30);
+    if (window.navigator.vibrate) window.navigator.vibrate(40);
     setCart(prev => {
       const exists = prev.find(i => i.id === product.id);
       if (exists) return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
@@ -92,31 +83,32 @@ export default function App() {
   };
 
   const subtotal = useMemo(() => cart.reduce((acc, i) => acc + (i.price * i.qty), 0), [cart]);
-  const currentFreight = cart.length > 0 ? BAIRROS_FRETE[bairro] : 0;
-  const total = subtotal + currentFreight;
+  const freightValue = cart.length > 0 ? BAIRROS_FRETE[bairro] : 0;
+  const total = subtotal + freightValue;
 
   // --- INTERFACES ---
 
-  // 1. GATE UNIFICADO (Portão com Lanterna e Monogramas)
+  // 1. GATE (Abertura com Lanterna e Monograma Repetitivo)
   if (stage === 'gate') {
     return (
       <div id="luxury-gate" className="fixed inset-0 bg-[#0D0C0A] flex flex-col items-center justify-center z-[9999] overflow-hidden">
-        {/* Efeito Lanterna Visual */}
         <div id="spotlight-wrapper"></div>
-        {/* Fundo de Monogramas */}
         <div className="pattern-layer" style={{ backgroundImage: `url(${PATTERN_URL})` }}></div>
         
         <div className="relative z-20 text-center flex flex-col items-center px-6">
-          <div className="mb-12 fade-in-up">
-            <div className="absolute inset-0 bg-[#D4AF37] blur-[100px] opacity-10 group-hover:opacity-40 transition-opacity"></div>
-            <img src={LOGO_URL} alt="DORÉ" className="h-40 md:h-56 relative z-10 transition-transform duration-1000" />
+          <div className="mb-16 fade-in-up">
+            <div className="absolute inset-0 bg-[#D4AF37] blur-[140px] opacity-10"></div>
+            <img src={LOGO_URL} alt="DORÉ" className="h-40 md:h-64 relative z-10" />
           </div>
           
           <div className="flex flex-col items-center gap-6 fade-in-up delay-1">
             <div className="w-[1px] h-20 bg-gradient-to-b from-transparent via-[#D4AF37] to-transparent"></div>
             <button 
-              onClick={enterExperience}
-              className="group relative px-12 py-5 border border-[#D4AF37]/30 bg-transparent text-[#D4AF37] text-[11px] tracking-[0.8em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black"
+              onClick={() => {
+                if (window.navigator.vibrate) window.navigator.vibrate([60, 40, 60]);
+                setStage('shop');
+              }}
+              className="group relative px-16 py-6 border border-[#D4AF37]/30 bg-transparent text-[#D4AF37] text-[11px] tracking-[0.8em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black"
             >
               <span className="relative z-10">Toque para Iniciar</span>
               <div className="absolute inset-0 bg-[#D4AF37] translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
@@ -125,23 +117,19 @@ export default function App() {
         </div>
 
         <style>{`
-          #luxury-gate { position: fixed; inset: 0; background-color: #0D0C0A; display: flex; align-items: center; justify-content: center; }
-          
+          #luxury-gate { position: fixed; inset: 0; background-color: #0D0C0A; }
           #spotlight-wrapper { 
             position: fixed; inset: 0; z-index: 5; pointer-events: none; 
-            background: radial-gradient(circle 450px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(212, 175, 55, 0.15) 0%, transparent 70%); 
-            mask-image: radial-gradient(circle 450px at var(--mouse-x, 50%) var(--mouse-y, 50%), black 10%, rgba(0,0,0,0.3) 50%, transparent 100%); 
-            -webkit-mask-image: radial-gradient(circle 450px at var(--mouse-x, 50%) var(--mouse-y, 50%), black 10%, rgba(0,0,0,0.3) 50%, transparent 100%); 
+            background: radial-gradient(circle 500px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(212, 175, 55, 0.15) 0%, transparent 70%); 
+            mask-image: radial-gradient(circle 500px at var(--mouse-x, 50%) var(--mouse-y, 50%), black 10%, rgba(0,0,0,0.3) 50%, transparent 100%); 
+            -webkit-mask-image: radial-gradient(circle 500px at var(--mouse-x, 50%) var(--mouse-y, 50%), black 10%, rgba(0,0,0,0.3) 50%, transparent 100%); 
           }
-          
           .pattern-layer { 
             position: absolute; inset: -50%; width: 200%; height: 200%; 
             background-size: 80px; background-repeat: repeat; transform: rotate(-12deg); 
             opacity: 0.18; filter: grayscale(1); mix-blend-mode: screen; 
-            transition: opacity 1s ease;
           }
-
-          @keyframes fadeInUpFixed { 0% { opacity: 0; transform: translateY(30px); } 100% { opacity: 1; transform: translateY(0); } }
+          @keyframes fadeInUpFixed { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           .fade-in-up { animation: fadeInUpFixed 1.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
           .delay-1 { animation-delay: 0.5s; }
         `}</style>
@@ -159,7 +147,7 @@ export default function App() {
           <div className="flex items-center gap-4">
             <img src={LOGO_URL} alt="DORÉ" className="h-10 md:h-12" />
             <div className="flex flex-col border-l border-white/10 pl-4">
-              <span className="text-[10px] tracking-[0.3em] uppercase text-[#D4AF37] font-semibold leading-tight">Boutique</span>
+              <span className="text-[10px] tracking-[0.3em] uppercase text-[#D4AF37] font-semibold leading-tight text-shadow-glow">Boutique</span>
               <span className="text-[8px] tracking-[0.4em] uppercase opacity-40">de Assados</span>
             </div>
           </div>
@@ -167,7 +155,7 @@ export default function App() {
           <button onClick={() => setIsCartOpen(true)} className="flex items-center gap-6 group">
             <div className="text-right hidden sm:block">
               <p className="text-[9px] tracking-[0.3em] uppercase opacity-30 group-hover:opacity-100 transition-opacity">Sua Reserva</p>
-              <p className="text-xs font-mono text-[#D4AF37]">R$ {total.toFixed(2)}</p>
+              <p className="text-sm font-mono text-[#D4AF37]">R$ {total.toFixed(2)}</p>
             </div>
             <div className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#D4AF37] transition-all relative">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
@@ -177,17 +165,17 @@ export default function App() {
         </div>
       </nav>
 
-      <main className="pt-40 pb-32 px-6 max-w-6xl mx-auto animate-fade-in">
+      <main className="pt-40 pb-32 px-6 max-w-6xl mx-auto">
         
         {/* Hero Section */}
         <header className="text-center mb-32 reveal visible">
-          <span className="text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase mb-6 block font-light">Chapecó • Produção Limitada</span>
+          <span className="text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase mb-6 block font-light">Chapecó • Produção Artesanal</span>
           <h2 className="text-5xl md:text-8xl font-serif leading-tight mb-10 tracking-tight">
-            Crosta Dourada.<br/>
-            <span className="italic text-white/30 font-light">Suculência Preservada.</span>
+            Crosta de Ouro.<br/>
+            <span className="italic text-white/30 font-light italic">Suculência Preservada.</span>
           </h2>
           <p className="text-white/40 font-light max-w-2xl mx-auto leading-relaxed text-lg italic">
-            "A perfeição exige paciência. 24 horas de infusão botânica para um dourado inesquecível à mesa."
+            "A perfeição exige paciência. Vinte e quatro horas de infusão botânica para um dourado inesquecível à mesa."
           </p>
         </header>
 
@@ -195,7 +183,7 @@ export default function App() {
         <section className="mb-40">
           <div className="flex items-center gap-6 mb-16">
             <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20 font-light">01</span>
-            <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">Escolha seu Assado</h3>
+            <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">O Assado</h3>
           </div>
           
           <div className="grid md:grid-cols-2 gap-12">
@@ -211,10 +199,7 @@ export default function App() {
                     <span className="font-mono text-xl opacity-60">R$ {item.price}</span>
                   </div>
                   <p className="text-sm text-white/30 font-light mb-10 h-16 leading-relaxed max-w-sm">{item.desc}</p>
-                  <button 
-                    onClick={() => addToCart(item)}
-                    className="w-full py-6 border border-[#D4AF37]/20 rounded-2xl text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] transition-all duration-700 font-bold"
-                  >
+                  <button onClick={() => addToCart(item)} className="w-full py-6 border border-[#D4AF37]/20 rounded-2xl text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-700 font-bold">
                     Adicionar à Reserva
                   </button>
                 </div>
@@ -223,11 +208,11 @@ export default function App() {
           </div>
         </section>
 
-        {/* 02. Farofas Premium */}
+        {/* 02. Acompanhamentos */}
         <section className="mb-40">
           <div className="flex items-center gap-6 mb-16">
             <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20 font-light">02</span>
-            <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">Acompanhamentos Gourmet</h3>
+            <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">Complementos Premium</h3>
           </div>
           
           <div className="grid md:grid-cols-2 gap-10">
@@ -239,11 +224,8 @@ export default function App() {
                 </div>
                 <div className="text-center md:text-right">
                   <p className="font-mono text-[#D4AF37] text-lg mb-6">R$ {item.price}</p>
-                  <button 
-                    onClick={() => addToCart(item)}
-                    className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-all duration-500 hover:scale-110"
-                  >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M12 5v14M5 12h14"/></svg>
+                  <button onClick={() => addToCart(item)} className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-all duration-500 hover:scale-110">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 5v14M5 12h14"/></svg>
                   </button>
                 </div>
               </div>
@@ -251,11 +233,11 @@ export default function App() {
           </div>
         </section>
 
-        {/* 03. Alquimia de Molhos */}
+        {/* 03. Molhos */}
         <section className="mb-20">
           <div className="flex items-center gap-6 mb-16">
             <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20 font-light">03</span>
-            <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">Alquimia de Molhos</h3>
+            <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">Alquimia de Sabores</h3>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
@@ -263,15 +245,12 @@ export default function App() {
               <div key={item.id} className="glass-panel p-10 flex flex-col justify-between rounded-[2rem] text-center md:text-left">
                 <div>
                   <h4 className="text-xl font-serif mb-4 text-[#F4F1EA]">{item.name}</h4>
-                  <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mb-10 leading-relaxed">{item.desc}</p>
+                  <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mb-10 leading-relaxed h-8">{item.desc}</p>
                 </div>
                 <div className="flex justify-between items-center pt-6 border-t border-white/5">
                   <span className="font-mono text-[#D4AF37] text-sm">R$ {item.price}</span>
-                  <button 
-                    onClick={() => addToCart(item)}
-                    className="text-[10px] uppercase tracking-[0.3em] border-b border-white/10 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all pb-1 font-bold"
-                  >
-                    Selecionar
+                  <button onClick={() => addToCart(item)} className="text-[10px] uppercase tracking-[0.3em] border-b border-white/10 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all pb-1 font-bold">
+                    Incluir
                   </button>
                 </div>
               </div>
@@ -329,17 +308,13 @@ export default function App() {
                 <div className="space-y-4 pt-4 border-t border-white/5">
                   <div className="flex justify-between items-center text-[10px] text-white/30 tracking-[0.2em] uppercase">
                     <span>Localização</span>
-                    <select 
-                      value={bairro} 
-                      onChange={(e) => setBairro(e.target.value)}
-                      className="bg-transparent text-[#D4AF37] border-none focus:ring-0 cursor-pointer font-sans text-[10px] uppercase tracking-widest"
-                    >
+                    <select value={bairro} onChange={(e) => setBairro(e.target.value)} className="bg-transparent text-[#D4AF37] border-none focus:ring-0 cursor-pointer font-sans text-[10px] uppercase tracking-widest">
                       {Object.keys(BAIRROS_FRETE).map(b => <option key={b} value={b} className="bg-[#0D0C0A]">{b}</option>)}
                     </select>
                   </div>
                   <div className="flex justify-between text-[10px] text-white/30 tracking-[0.2em] uppercase items-center">
                     <span className="flex items-center gap-3">Frete Inteligente <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-ping"></div></span>
-                    <span className="font-mono">R$ {currentFreight.toFixed(2)}</span>
+                    <span className="font-mono">R$ {freightValue.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -349,18 +324,15 @@ export default function App() {
                 <span className="text-3xl font-mono">R$ {total.toFixed(2)}</span>
               </div>
               
-              <button 
-                className="w-full bg-[#D4AF37] text-[#0D0C0A] py-7 rounded-[2rem] font-bold uppercase tracking-[0.4em] text-[10px] hover:bg-[#F4F1EA] transition-all duration-700 mt-8 shadow-[0_20px_50px_-10px_rgba(212,175,55,0.3)]"
-                onClick={() => {
+              <button className="w-full bg-[#D4AF37] text-[#0D0C0A] py-7 rounded-[2rem] font-bold uppercase tracking-[0.4em] text-[10px] hover:bg-[#F4F1EA] transition-all duration-700 mt-8 shadow-[0_20px_50px_-10px_rgba(212,175,55,0.3)]" onClick={() => {
                   const itemsMsg = cart.map(i => `• ${i.name} (${i.qty}x)`).join('%0A');
                   const msg = `Olá! Gostaria de confirmar minha reserva DORÉ.%0A%0A*Pedido:*%0A${itemsMsg}%0A%0A*Local:* ${bairro}%0A*Total:* R$ ${total.toFixed(2)}%0A%0A_Aguardando horários disponíveis._`;
                   window.open(`https://wa.me/5549999999999?text=${msg}`);
-                }}
-              >
-                Finalizar no WhatsApp
+                }}>
+                Finalizar via WhatsApp
               </button>
               <button onClick={() => setIsCartOpen(false)} className="w-full text-center text-[9px] uppercase tracking-[0.5em] opacity-20 hover:opacity-100 transition-opacity pt-4">
-                Adicionar Mais Itens
+                Retornar ao Menu
               </button>
             </div>
           )}
@@ -389,11 +361,7 @@ export default function App() {
           box-shadow: 0 50px 100px rgba(0,0,0,0.7);
         }
 
-        .animate-fade-in { animation: fadeIn 1s forwards; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .reveal { opacity: 0; transform: translateY(50px); transition: all 1.5s cubic-bezier(0.16, 1, 0.3, 1); }
-        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .text-shadow-glow { text-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
 
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #0D0C0A; }
