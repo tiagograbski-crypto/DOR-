@@ -16,7 +16,6 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        /* CSS Global e Tipografia */
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap');
         
         :root { --mouse-x: 50%; --mouse-y: 50%; }
@@ -31,7 +30,6 @@
           -webkit-tap-highlight-color: transparent;
         }
 
-        /* Fundo Ember Glow */
         .ambient-glow {
           position: fixed;
           top: 0; left: 0; width: 100vw; height: 100vh;
@@ -56,7 +54,6 @@
           100% { transform: translate(10%, 10%) scale(1.1); }
         }
 
-        /* Painéis e Cards de Vidro */
         .glass-panel {
           background: rgba(15, 15, 15, 0.4);
           backdrop-filter: blur(25px);
@@ -115,13 +112,11 @@
         }
         .animate-pulse-soft { animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 
-        /* Scrollbars customizadas */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
         
-        /* Oculta scrollbar no carrosel de datas (App-like) mas mantém funcional */
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         
@@ -130,10 +125,14 @@
           outline: none;
         }
         input::placeholder { color: rgba(255,255,255,0.2); }
+
+        .signature-font {
+          font-family: 'Playfair Display', serif;
+          font-style: italic;
+        }
     </style>
 </head>
 <body>
-    <!-- Fundo Animado -->
     <div class="ambient-glow">
         <div class="glow-orb glow-1"></div>
         <div class="glow-orb glow-2"></div>
@@ -153,46 +152,49 @@
           "https://alisachapeco.com.br/assets/images/image24.jpg?v=d9123dc9"
         ];
 
-        // --- SISTEMA DE RESERVAS & ESCASSEZ ---
+        // --- SISTEMA DE RESERVAS & ESCASSEZ (Lote de 15 Dias) ---
         const RESERVATION_SLOTS = [
-          { id: 'd0', week: 'Nesta Semana', date: 'Sexta, 24/04', stock: 0 },
-          { id: 'd1', week: 'Nesta Semana', date: 'Sábado, 25/04', stock: 0 },
-          { id: 'd2', week: 'Nesta Semana', date: 'Domingo, 26/04', stock: 2 },
-          { id: 'd3', week: 'Próxima Semana', date: 'Sexta, 01/05', stock: 1 },
-          { id: 'd4', week: 'Próxima Semana', date: 'Sábado, 02/05', stock: 2 },
-          { id: 'd5', week: 'Próxima Semana', date: 'Domingo, 03/05', stock: 2 }
+          { id: 'd0', week: 'Neste Fim de Semana', date: 'Sexta', stock: 0 },
+          { id: 'd1', week: 'Neste Fim de Semana', date: 'Sábado', stock: 0 },
+          { id: 'd2', week: 'Neste Fim de Semana', date: 'Domingo', stock: 0 },
+          { id: 'd3', week: 'Próxima Semana', date: 'Sexta', stock: 0 },
+          { id: 'd4', week: 'Próxima Semana', date: 'Sábado', stock: 0 },
+          { id: 'd5', week: 'Próxima Semana', date: 'Domingo', stock: 0 },
+          { id: 'd6', week: 'Lote Aberto (Em 15 Dias)', date: 'Sexta, 08/05', stock: 12 },
+          { id: 'd7', week: 'Lote Aberto (Em 15 Dias)', date: 'Sábado, 09/05', stock: 9 },
+          { id: 'd8', week: 'Lote Aberto (Em 15 Dias)', date: 'Domingo, 10/05', stock: 5 }
         ];
 
         const HORARIOS_ENTREGA = ['11:00 - 11:30', '11:30 - 12:00', '12:00 - 12:30', '12:30 - 13:00'];
         const BAIRROS_FRETE = { 'Centro': 12, 'Efapi': 20, 'Santa Maria': 15, 'Passo dos Fortes': 15, 'Bela Vista': 12, 'Outros': 18 };
 
-        // --- BANCO DE DADOS ---
+        // --- BANCO DE DADOS SENSORIAL ---
         const BUILDER_DATA = {
           cortes: [
-            { id: 'c1', name: 'DORÉ Clássico', type: 'classico', desc: 'A ave em sua essência, sem recheio. Foco absoluto na suculência.', price: 115, img: 'https://alisachapeco.com.br/assets/images/image20.jpg?v=e9c990c3' },
-            { id: 'c2', name: 'DORÉ Recheado', type: 'recheado', desc: 'Desossado parcialmente para abrigar nossos recheios artesanais.', price: 145, img: 'https://alisachapeco.com.br/assets/images/image18.jpg?v=e9c990c3' }
+            { id: 'c1', name: 'DORÉ Crosta Panko', type: 'classico', desc: 'Retirado do calor exato e selado com uma armadura de Panko artesanal temperada e tostada na manteiga.', price: 115, img: 'https://alisachapeco.com.br/assets/images/image20.jpg?v=e9c990c3' },
+            { id: 'c2', name: 'DORÉ Recheado & Selado', type: 'recheado', desc: 'Desossado parcialmente para abrigar nossos recheios, finalizado com a crosta cítrica e crocante de Panko.', price: 145, img: 'https://alisachapeco.com.br/assets/images/image18.jpg?v=e9c990c3' }
           ],
           marinadas: [
-            { id: 'm1', name: 'Vinho Branco, Siciliano & Ervas', desc: 'Toque floral e acidez elegante. A infusão clássica.', img: 'https://images.unsplash.com/photo-1590412200988-a436970781fa?q=80&w=400&auto=format&fit=crop' },
-            { id: 'm2', name: 'Cerveja Stout & Mostarda', desc: 'Notas amendoadas e sabor profundo. Caramelização intensa.', img: 'https://images.unsplash.com/photo-1605333398740-1bc6b4b42211?q=80&w=400&auto=format&fit=crop' },
-            { id: 'm3', name: 'Laranja Cravo & Alecrim', desc: 'Cítrico e aromático. Uma homenagem ao assado tradicional.', img: 'https://images.unsplash.com/photo-1611078713374-219e2e604f32?q=80&w=400&auto=format&fit=crop' }
+            { id: 'm1', name: 'Vinho Branco, Limão Siciliano & Alecrim', desc: 'Notas herbáceas de alecrim fresco e acidez elegante. A infusão que desperta o paladar.', img: 'https://images.unsplash.com/photo-1590412200988-a436970781fa?q=80&w=400&auto=format&fit=crop' },
+            { id: 'm2', name: 'Cerveja Stout & Mostarda Rústica', desc: 'Aroma maltado, sabor profundo e um toque defumado. Caramelização intensa na pele.', img: 'https://images.unsplash.com/photo-1605333398740-1bc6b4b42211?q=80&w=400&auto=format&fit=crop' },
+            { id: 'm3', name: 'Laranja, Cravo & Tomilho Fresco', desc: 'O perfume cítrico da laranja entrelaçado ao tomilho. Uma homenagem sensorial ao assado de família.', img: 'https://images.unsplash.com/photo-1611078713374-219e2e604f32?q=80&w=400&auto=format&fit=crop' }
           ],
           recheios: [
-            { id: 'r1', name: 'Farofa de Miúdos & Sálvia', desc: 'Miúdos selecionados, bacon defumado e ervas frescas.', img: 'https://images.unsplash.com/photo-1551185458-75f1ea38de1f?q=80&w=400&auto=format&fit=crop' },
-            { id: 'r2', name: 'Maçã Verde & Castanhas', desc: 'Contraste entre o salgado e a crocância das castanhas.', img: 'https://images.unsplash.com/photo-1605291523315-d72b2ab68d89?q=80&w=400&auto=format&fit=crop' },
-            { id: 'r3', name: 'Queijo Coalho & Alho Poró', desc: 'Textura cremosa que se funde aos sucos naturais.', img: 'https://images.unsplash.com/photo-1634458397368-8092ec0f80b9?q=80&w=400&auto=format&fit=crop' }
+            { id: 'r1', name: 'Farofa de Miúdos Nobres', desc: 'Miúdos selecionados, bacon defumado e o perfume marcante da sálvia fresca na manteiga.', img: 'https://images.unsplash.com/photo-1551185458-75f1ea38de1f?q=80&w=400&auto=format&fit=crop' },
+            { id: 'r2', name: 'Maçã Verde & Castanhas Torradas', desc: 'O estalo das castanhas e a suculência adocicada da maçã equilibrando os sucos da carne.', img: 'https://images.unsplash.com/photo-1605291523315-d72b2ab68d89?q=80&w=400&auto=format&fit=crop' },
+            { id: 'r3', name: 'Queijo Coalho Dourado & Alho Poró', desc: 'Textura elástica do queijo tostado que se funde com a suavidade aromática do alho poró.', img: 'https://images.unsplash.com/photo-1634458397368-8092ec0f80b9?q=80&w=400&auto=format&fit=crop' }
           ]
         };
 
         const EXTRAS = {
           farofas: [
-            { id: 'e1', name: 'Farofa de Pistache', desc: 'Com manteiga noisette.', price: 42, img: 'https://images.unsplash.com/photo-1540420828642-fca2c5c18abe?q=80&w=200&auto=format&fit=crop' },
-            { id: 'e2', name: 'Farofa Panko', desc: 'Na autêntica manteiga de garrafa.', price: 35, img: 'https://images.unsplash.com/photo-1563805042-7684c8a9e9bc?q=80&w=200&auto=format&fit=crop' }
+            { id: 'e1', name: 'Farofa de Pistache', desc: 'Pistaches tostados com manteiga noisette e um toque de flor de sal.', price: 42, img: 'https://images.unsplash.com/photo-1540420828642-fca2c5c18abe?q=80&w=200&auto=format&fit=crop' },
+            { id: 'e2', name: 'Farofa Panko Rústica', desc: 'Crocância estaladiça selada na autêntica manteiga de garrafa.', price: 35, img: 'https://images.unsplash.com/photo-1563805042-7684c8a9e9bc?q=80&w=200&auto=format&fit=crop' }
           ],
           molhos: [
-            { id: 'e3', name: 'Aioli de Alho Negro', desc: 'Sabor umami e final adocicado.', price: 18, img: 'https://images.unsplash.com/photo-1626200419188-3ca649a20726?q=80&w=200&auto=format&fit=crop' },
-            { id: 'e4', name: 'Chimichurri DORÉ', desc: 'Ervas e azeite extra virgem.', price: 15, img: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=200&auto=format&fit=crop' },
-            { id: 'e5', name: 'Mostarda & Mel', desc: 'O equilíbrio perfeito.', price: 16, img: 'https://images.unsplash.com/photo-1588673756209-667500dcc684?q=80&w=200&auto=format&fit=crop' }
+            { id: 'e3', name: 'Aioli de Alho Negro', desc: 'Sabor intensamente umami, notas trufadas e final levemente adocicado.', price: 18, img: 'https://images.unsplash.com/photo-1626200419188-3ca649a20726?q=80&w=200&auto=format&fit=crop' },
+            { id: 'e4', name: 'Chimichurri DORÉ', desc: 'Ervas frescas picadas à mão, vinagre de maçã e azeite extra virgem.', price: 15, img: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=200&auto=format&fit=crop' },
+            { id: 'e5', name: 'Mostarda & Mel Silvestre', desc: 'A pungência da mostarda dijon quebrada pelo mel cru. Equilíbrio perfeito.', price: 16, img: 'https://images.unsplash.com/photo-1588673756209-667500dcc684?q=80&w=200&auto=format&fit=crop' }
           ]
         };
 
@@ -208,7 +210,6 @@
           const [isCartOpen, setIsCartOpen] = useState(false);
           const [toast, setToast] = useState(null);
           
-          // Checkout Form
           const [bairro, setBairro] = useState('Centro');
           const [horario, setHorario] = useState(HORARIOS_ENTREGA[0]);
           const [selectedDate, setSelectedDate] = useState(RESERVATION_SLOTS.find(s => s.stock > 0));
@@ -308,7 +309,7 @@
 
           const addCustomChickenToCart = () => {
             if (!builder.corte) { triggerVibration([40, 40]); return showToast("Selecione a base do assado."); }
-            if (!builder.marinada) { triggerVibration([40, 40]); return showToast("Escolha uma infusão."); }
+            if (!builder.marinada) { triggerVibration([40, 40]); return showToast("Escolha a infusão botânica."); }
             if (builder.corte.type === 'recheado' && !builder.recheio) { triggerVibration([40, 40]); return showToast("Defina o recheio artesanal."); }
 
             triggerVibration(30);
@@ -372,7 +373,7 @@
           // --- GATE ---
           if (stage === 'gate') {
             return (
-              <div className="fixed inset-0 flex flex-col items-center justify-center z-[9999] overflow-hidden" style={{ backgroundColor: '#050505' }}>
+              <div className="fixed inset-0 flex flex-col items-center justify-center z-[9999] overflow-hidden bg-[#030303]">
                 <div style={{ position: 'absolute', inset: 0, zIndex: 5, pointerEvents: 'none', overflow: 'hidden', background: 'radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), rgba(212, 175, 55, 0.15) 0%, transparent 80%)', WebkitMaskImage: 'radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), black 10%, rgba(0,0,0,0.2) 60%, transparent 100%)' }}>
                   <div style={{ position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%', backgroundSize: 'clamp(80px, 12vw, 150px)', backgroundRepeat: 'repeat', transform: 'rotate(-15deg)', opacity: 0.25, filter: 'grayscale(1) brightness(1.3) contrast(1.2)', mixBlendMode: 'screen', backgroundImage: `url(${LOGO_URL})` }}></div>
                 </div>
@@ -384,7 +385,7 @@
                   <div className="flex flex-col items-center gap-6 pointer-events-auto" style={{ animation: 'fadeInUpFixed 1.5s cubic-bezier(0.16, 1, 0.3, 1) both', animationDelay: '0.5s' }}>
                     <div className="w-[1px] h-20 bg-gradient-to-b from-transparent via-[#D4AF37] to-transparent opacity-50"></div>
                     <button onClick={() => { triggerVibration([40, 30, 40]); setStage('shop'); }} className="group relative px-12 py-5 border border-[#D4AF37]/30 bg-black/40 backdrop-blur-md text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black rounded-full">
-                      <span className="relative z-10 font-bold">Acessar Boutique</span>
+                      <span className="relative z-10 font-bold">Acessar a Boutique</span>
                       <div className="absolute inset-0 bg-[#D4AF37] translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
                     </button>
                   </div>
@@ -394,11 +395,9 @@
             );
           }
 
-          // --- BOUTIQUE MAIN ---
           return (
             <div className="min-h-screen text-[#F4F1EA] font-sans selection:bg-[#D4AF37] selection:text-black pb-24 md:pb-0">
               
-              {/* TOAST NOTIFICATION */}
               <div className={`fixed top-24 md:top-28 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 transform ${toast ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none'}`}>
                 <div className="bg-[#111111] border border-[#D4AF37]/30 text-[#F4F1EA] px-6 py-3 rounded-full text-[10px] tracking-widest uppercase flex items-center gap-3 shadow-[0_15px_30px_rgba(0,0,0,0.8)]">
                   <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse shadow-[0_0_5px_#D4AF37]"></div>
@@ -406,7 +405,6 @@
                 </div>
               </div>
 
-              {/* MOBILE SMART STICKY BAR */}
               <div className={`fixed bottom-0 left-0 w-full z-40 transition-transform duration-500 ease-in-out md:hidden ${stage === 'shop' && !isCartOpen ? 'translate-y-0' : 'translate-y-full'}`}>
                 <div className="bg-[#050505]/95 backdrop-blur-2xl border-t border-white/10 p-4 pb-6 shadow-[0_-10px_40px_rgba(0,0,0,0.9)]">
                   <button 
@@ -428,7 +426,6 @@
                 </div>
               </div>
 
-              {/* HEADER SUPERIOR */}
               <nav className="fixed top-0 w-full z-40 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 shadow-2xl">
                 <div className="max-w-6xl mx-auto px-6 h-20 md:h-24 flex justify-between items-center">
                   <div className="flex items-center gap-4">
@@ -449,14 +446,13 @@
 
               <main className="pt-28 md:pt-32 pb-10 relative z-10">
                 
-                {/* 00. CAPA (HERO) c/ Escassez */}
+                {/* HERO */}
                 <div className="max-w-6xl mx-auto px-6 mb-20 md:mb-32 reveal" id="capa">
-                  
                   <div className="flex justify-center lg:justify-start mb-6 md:mb-8">
-                    <div className="inline-flex items-center gap-3 px-4 py-2 border border-[#D4AF37]/20 bg-[#D4AF37]/5 rounded-full backdrop-blur-md">
-                      <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse-soft"></div>
-                      <span className="text-[8px] md:text-[9px] uppercase tracking-[0.3em] text-[#D4AF37] font-semibold">
-                        Apenas sob Encomenda • 7 Dias de Antecedência
+                    <div className="inline-flex items-center gap-3 px-4 py-2 border border-red-500/20 bg-red-500/5 rounded-full backdrop-blur-md">
+                      <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse-soft"></div>
+                      <span className="text-[8px] md:text-[9px] uppercase tracking-[0.3em] text-white/80 font-semibold">
+                        Lotes Quinzenais Esgotados • Próxima Abertura: <span className="text-[#D4AF37]">08/05</span>
                       </span>
                     </div>
                   </div>
@@ -464,17 +460,17 @@
                   <div className="grid lg:grid-cols-12 gap-8 items-center">
                     <div className="text-center lg:text-left lg:col-span-5 order-2 lg:order-1 z-20">
                       <h2 className="text-5xl md:text-6xl lg:text-7xl font-serif leading-[1.1] mb-6 tracking-tight text-white drop-shadow-2xl">
-                        Crosta Doré.<br/>
-                        <span className="italic text-white/50 font-light">Suculência Preservada.</span>
+                        Crosta Panko.<br/>
+                        <span className="italic text-white/50 font-light">Selagem Perfeita.</span>
                       </h2>
                       <p className="text-white/60 font-light max-w-md mx-auto lg:mx-0 leading-relaxed text-sm mb-8">
-                        Não somos um fast-food. Somos uma rotisserie de precisão. Reserve seu assado com 7 dias de antecedência para garantir as 24h de infusão botânica exigidas pela nossa técnica.
+                        Não trabalhamos com prateleiras cheias. Nossas aves são exclusivas e empanadas artesanalmente. Os lotes para os próximos 15 dias já estão tomados. Antecipe-se.
                       </p>
                       <button 
                         onClick={() => { triggerVibration(10); document.getElementById('passo-corte').scrollIntoView({ behavior: 'smooth' }); }}
                         className="hidden md:inline-block px-10 py-4 border border-[#D4AF37]/30 bg-[#D4AF37]/5 rounded-full text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-500 font-bold text-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.1)] hover:shadow-[0_0_25px_rgba(212,175,55,0.4)]"
                       >
-                        Iniciar Reserva
+                        Reservar Futuro Lote
                       </button>
                     </div>
 
@@ -493,7 +489,7 @@
                 <section id="passo-corte" className="max-w-5xl mx-auto px-6 mb-16 md:mb-20 reveal scroll-mt-24">
                   <div className="flex items-center gap-4 mb-6">
                     <span className="text-[#D4AF37] font-serif text-2xl italic opacity-30">01</span>
-                    <h3 className="text-xs uppercase tracking-[0.3em] font-light text-white/70">A Base do Assado</h3>
+                    <h3 className="text-xs uppercase tracking-[0.3em] font-light text-white/70">A Base Sensorial</h3>
                   </div>
                   <div className="grid md:grid-cols-2 gap-6">
                     {BUILDER_DATA.cortes.map(item => (
@@ -516,25 +512,27 @@
                   </div>
                 </section>
 
-                {/* CONTRASTE: SEÇÃO FULL-BLEED (Explicação dos 7 Dias) */}
+                {/* CONTRASTE: MANIFESTO DO CHEF */}
                 <div className="w-full bg-[#050505] py-20 mb-24 border-y border-white/5 reveal">
                   <div className="max-w-5xl mx-auto px-6 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-12">
-                    <div className="max-w-lg">
-                      <span className="text-[#D4AF37] text-[8px] tracking-[0.4em] uppercase mb-4 block">O Tempo Como Ingrediente</span>
-                      <h3 className="text-3xl font-serif leading-tight text-white mb-4">A Exclusividade <br/><span className="italic text-[#D4AF37]">Do Tempo.</span></h3>
-                      <p className="text-white/40 font-light leading-relaxed text-xs">
-                        Para que a crosta de vidro aconteça e os sucos permaneçam intactos no peito, cada ave repousa por 24 horas em nossa infusão. É por isso que não trabalhamos com prateleiras cheias. Atendemos apenas com encomendas prévias de 7 dias, garantindo lotes mínimos de no máximo 5 unidades por fim de semana.
+                    <div className="max-w-2xl">
+                      <span className="text-[#D4AF37] text-[8px] tracking-[0.4em] uppercase mb-4 block">O Manifesto dos 30</span>
+                      <h3 className="text-3xl font-serif leading-tight text-white mb-6">A Ciência da <br/><span className="italic text-[#D4AF37]">Crosta Perfeita.</span></h3>
+                      <p className="text-white/40 font-light leading-relaxed text-xs mb-6">
+                        "Nós não somos uma fábrica e não assamos em esteiras. Para garantir a selagem dourada, a ave é retirada do fogo no milissegundo exato, onde recebe uma armadura de Panko temperado e é selada em manteiga clarificada. É um trabalho manual, minucioso e implacável.<br/><br/>
+                        Este processo exige respeito ao tempo. É por isso que limitamos a nossa produção a 30 unidades diárias. Qualidade absoluta não se escala. Nem uma ave a mais sai desse forno."
                       </p>
+                      <p className="signature-font text-[#D4AF37] text-xl opacity-80">— Chef Thiago</p>
                     </div>
-                    <div className="flex gap-10 opacity-80">
+                    <div className="flex gap-10 opacity-80 md:pl-10">
                       <div className="text-center">
-                        <span className="block text-[#D4AF37] font-mono text-2xl mb-1">7 Dias</span>
-                        <span className="text-[8px] uppercase tracking-widest text-white/50">Reserva</span>
+                        <span className="block text-[#D4AF37] font-mono text-2xl mb-1">30</span>
+                        <span className="text-[8px] uppercase tracking-widest text-white/50">Aves / Dia</span>
                       </div>
                       <div className="w-[1px] h-10 bg-white/10"></div>
                       <div className="text-center">
-                        <span className="block text-[#D4AF37] font-mono text-2xl mb-1">5 Aves</span>
-                        <span className="text-[8px] uppercase tracking-widest text-white/50">Por Fim de Semana</span>
+                        <span className="block text-[#D4AF37] font-mono text-2xl mb-1">24h</span>
+                        <span className="text-[8px] uppercase tracking-widest text-white/50">Infusão</span>
                       </div>
                     </div>
                   </div>
@@ -544,7 +542,7 @@
                 <section id="passo-marinada" className={`max-w-5xl mx-auto px-6 mb-16 md:mb-20 reveal scroll-mt-24 transition-opacity duration-500 ${!builder.corte ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
                   <div className="flex items-center gap-4 mb-6">
                     <span className="text-[#D4AF37] font-serif text-2xl italic opacity-30">02</span>
-                    <h3 className="text-xs uppercase tracking-[0.3em] font-light text-white/70">A Infusão (24h)</h3>
+                    <h3 className="text-xs uppercase tracking-[0.3em] font-light text-white/70">A Infusão Botânica (24h)</h3>
                   </div>
                   <div className="grid md:grid-cols-3 gap-6">
                     {BUILDER_DATA.marinadas.map(item => (
@@ -570,7 +568,7 @@
                 <section id="passo-recheio" className={`max-w-5xl mx-auto px-6 mb-16 md:mb-20 reveal scroll-mt-24 transition-all duration-500 ${(!builder.marinada || builder.corte?.type === 'classico') ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
                   <div className="flex items-center gap-4 mb-6 relative">
                     <span className="text-[#D4AF37] font-serif text-2xl italic opacity-30">03</span>
-                    <h3 className="text-xs uppercase tracking-[0.3em] font-light text-white/70">A Arte do Recheio</h3>
+                    <h3 className="text-xs uppercase tracking-[0.3em] font-light text-white/70">O Recheio Artesanal</h3>
                     {builder.corte?.type === 'classico' && (
                       <span className="absolute right-0 text-[8px] text-[#D4AF37] uppercase tracking-widest bg-[#D4AF37]/10 px-3 py-1 rounded">Bloqueado p/ Clássico</span>
                     )}
@@ -595,7 +593,6 @@
                   </div>
                 </section>
 
-                {/* BOTÃO DESKTOP FINALIZAR CONSTRUÇÃO */}
                 <div className={`max-w-5xl mx-auto px-6 mb-24 reveal transition-all duration-500 hidden md:block text-center md:text-left ${(!builder.corte || !builder.marinada || (builder.corte.type === 'recheado' && !builder.recheio)) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                    <button 
                       onClick={addCustomChickenToCart}
@@ -661,7 +658,6 @@
                   </div>
                 </section>
 
-                {/* BANNER CINEMÁTICO: A CELEBRAÇÃO */}
                 <section id="passo-celebre" className="max-w-6xl mx-auto mb-10 reveal mt-24">
                   <div className="text-center mb-6">
                     <span className="text-[#D4AF37] text-[9px] tracking-[0.4em] uppercase block mb-2 font-light">O Propósito</span>
@@ -685,14 +681,13 @@
 
               </main>
 
-              {/* FOOTER MINIMALISTA */}
               <footer className="border-t border-white/5 py-12 text-center relative z-10 bg-[#050505]">
                 <img src={LOGO_URL} alt="DORÉ" className="h-6 mx-auto mb-6 opacity-30" />
                 <p className="text-[8px] uppercase tracking-[0.4em] text-white/30 font-light mb-2">Chapecó • SC</p>
                 <p className="text-[7px] uppercase tracking-[0.2em] text-white/10 font-mono">© 2026 Boutique DORÉ. Todos os direitos reservados.</p>
               </footer>
 
-              {/* CARRINHO DE RESERVA C/ ESCASSEZ DE DATAS */}
+              {/* CARRINHO DE RESERVA */}
               <div className={`fixed inset-0 z-50 transition-all duration-500 ${isCartOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
                 <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => { triggerVibration(10); setIsCartOpen(false); }}></div>
                 <div className={`absolute top-0 right-0 h-full w-full max-w-md bg-[#050505] border-l border-white/5 shadow-[-20px_0_50px_rgba(0,0,0,0.9)] flex flex-col transition-transform duration-400 ease-out transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
@@ -729,15 +724,13 @@
                           ))}
                         </div>
 
-                        {/* NOVO SISTEMA DE AGENDAMENTO E DATAS */}
+                        {/* SISTEMA DE AGENDAMENTO (Escassez de 15 Dias Aplicada) */}
                         <div className="space-y-6">
-                          <h5 className="text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-light pl-1">Agendamento & Logística</h5>
+                          <h5 className="text-[10px] uppercase tracking-[0.3em] text-[#D4AF37] font-light pl-1">Logística de Entrega</h5>
                           
                           <div className="space-y-5">
-                            
-                            {/* App-Like Date Selector Horizontal */}
                             <div className="flex flex-col gap-2">
-                              <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Data da Reserva (Lotes de 7 Dias)</label>
+                              <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Data da Reserva</label>
                               <div className="flex gap-3 overflow-x-auto pb-2 pt-1 hide-scroll snap-x">
                                 {RESERVATION_SLOTS.map(slot => (
                                   <div 
@@ -751,16 +744,16 @@
                                       }
                                     }}
                                     className={`snap-center flex-shrink-0 w-36 p-3 rounded-2xl border transition-all cursor-pointer relative overflow-hidden ${
-                                      slot.stock === 0 ? 'opacity-50 border-white/5 bg-black/40' :
+                                      slot.stock === 0 ? 'opacity-40 border-red-500/20 bg-red-900/10' :
                                       selectedDate?.id === slot.id ? 'border-[#D4AF37] bg-[#D4AF37]/10 scale-[1.02]' : 'border-white/10 bg-[#111] hover:border-white/30'
                                     }`}
                                   >
                                     <p className="text-[8px] text-white/40 mb-1 uppercase tracking-widest">{slot.week}</p>
-                                    <p className={`text-xs font-bold mb-2 ${slot.stock === 0 ? 'text-white/50 line-through' : 'text-white'}`}>{slot.date}</p>
+                                    <p className={`text-xs font-bold mb-2 ${slot.stock === 0 ? 'text-red-400/50 line-through' : 'text-white'}`}>{slot.date}</p>
                                     {slot.stock === 0 ? (
-                                      <span className="text-[8px] text-red-500/80 font-mono uppercase tracking-widest font-bold">Esgotado</span>
+                                      <span className="text-[8px] text-red-500 font-mono uppercase tracking-widest font-bold">Esgotado</span>
                                     ) : (
-                                      <span className="text-[8px] text-[#D4AF37] font-mono uppercase tracking-widest font-bold">Restam {slot.stock}</span>
+                                      <span className="text-[8px] text-[#D4AF37] font-mono uppercase tracking-widest font-bold">Lote Aberto</span>
                                     )}
                                     {selectedDate?.id === slot.id && <div className="absolute top-0 right-0 w-0 h-0 border-t-[20px] border-t-[#D4AF37] border-l-[20px] border-l-transparent"></div>}
                                   </div>
@@ -813,12 +806,12 @@
                       <button onClick={() => {
                           triggerVibration([30, 20, 30]);
                           const itemsMsg = cart.map(i => `• ${i.name} (${i.qty}x)%0A  _${i.desc}_`).join('%0A%0A');
-                          const finalMsg = `Olá, DORÉ! Gostaria de confirmar minha reserva.%0A%0A*📦 Pedido:*%0A${itemsMsg}%0A%0A*📅 Data Reservada:* ${selectedDate.date}%0A*⏱ Horário:* ${horario}%0A*📍 Bairro:* ${bairro}%0A*Obs:* ${instrucoes || 'Nenhuma'}%0A%0A*💳 Total:* R$ ${total.toFixed(2)}%0A%0A_Aguardando chave Pix e confirmação do lote._`;
+                          const finalMsg = `Olá, Chef Thiago! Gostaria de reservar meu lote.%0A%0A*📦 Pedido:*%0A${itemsMsg}%0A%0A*📅 Data Reservada:* ${selectedDate.date}%0A*⏱ Horário:* ${horario}%0A*📍 Bairro:* ${bairro}%0A*Obs:* ${instrucoes || 'Nenhuma'}%0A%0A*💳 Total:* R$ ${total.toFixed(2)}%0A%0A_Aguardando chave Pix e confirmação da reserva._`;
                           window.open(`https://wa.me/5549999999999?text=${finalMsg}`);
                         }}
                         className="w-full bg-[#D4AF37] text-black py-4 rounded-xl font-bold uppercase tracking-[0.2em] text-[9px] hover:bg-white transition-colors mt-2"
                       >
-                        Enviar Reserva
+                        Garantir Reserva (WhatsApp)
                       </button>
                     </div>
                   )}
