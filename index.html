@@ -27,13 +27,16 @@
           margin: 0; 
           overflow-x: hidden;
           -webkit-font-smoothing: antialiased;
+          /* App-like feel: remove bounce e toques indesejados */
+          overscroll-behavior-y: none; 
+          -webkit-tap-highlight-color: transparent;
         }
 
         /* Fundo de Pedra (Ardósia/Cimento) */
         .slate-bg {
           background-color: #0D0C0A;
           background-image: 
-            radial-gradient(circle at 50% 50%, rgba(30, 30, 30, 0.6) 0%, #0D0C0A 100%),
+            radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.8) 0%, #0D0C0A 100%),
             url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
           background-attachment: fixed;
         }
@@ -42,21 +45,37 @@
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
         
-        /* Glassmorphism Dinâmico */
+        /* Glassmorphism Dinâmico - Para áreas grandes */
         .glass-panel {
-          background: rgba(255, 255, 255, 0.02);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.04);
-          transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+          background: rgba(20, 20, 20, 0.6);
+          backdrop-filter: blur(25px);
+          -webkit-backdrop-filter: blur(25px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
           cursor: pointer;
+          user-select: none;
         }
         
         .glass-panel:hover, .glass-panel.selected {
-          border-color: rgba(212, 175, 55, 0.5);
-          background: rgba(255, 255, 255, 0.04);
+          border-color: rgba(212, 175, 55, 0.6);
+          background: rgba(30, 30, 30, 0.8);
           transform: translateY(-4px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Cards Sólidos App-like (Legibilidade Máxima) */
+        .app-card {
+          background-color: #121212;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 1rem;
+          transition: all 0.3s ease;
+          user-select: none;
+        }
+        
+        .app-card:active, .app-card.selected {
+          border-color: rgba(212, 175, 55, 0.6);
+          background-color: #1a1a1a;
+          transform: scale(0.98);
         }
 
         .text-shadow-glow { text-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
@@ -70,7 +89,7 @@
         .reveal { 
           opacity: 0; 
           transform: translateY(30px); 
-          transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1); 
+          transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); 
           will-change: opacity, transform;
         }
         .reveal.visible { 
@@ -108,7 +127,6 @@
         const SENSORIAL_IMG = "https://alisachapeco.com.br/assets/images/image21.png?v=e9c990c3";
         const PATTERN_URL = "https://alisachapeco.com.br/assets/images/image18.png?v=337fcc30";
 
-        // IMAGENS DO BANNER DE FAMÍLIA
         const BANNER_IMAGES = [
           "https://alisachapeco.com.br/assets/images/image23.jpg?v=d4bc2a9d",
           "https://alisachapeco.com.br/assets/images/image24.jpg?v=d9123dc9"
@@ -146,16 +164,14 @@
 
         const BAIRROS_FRETE = { 'Centro': 12, 'Efapi': 20, 'Santa Maria': 15, 'Passo dos Fortes': 15, 'Bela Vista': 12, 'Outros': 18 };
         const HORARIOS_ENTREGA = ['Domingo | 11:00 - 11:30', 'Domingo | 11:30 - 12:00', 'Domingo | 12:00 - 12:30', 'Domingo | 12:30 - 13:00'];
-
-        // Lógica de Escassez Simulada para as 30 unidades
-        const UNIDADES_RESTANTES = 7; // Este número pode vir de um backend futuramente. 7 gera urgência perfeita.
+        const UNIDADES_RESTANTES = 7; 
 
         const TIMELINE_STEPS = [
           { id: 'capa', label: 'Início' },
           { id: 'passo-corte', label: '01. A Ave' },
           { id: 'passo-marinada', label: '02. Infusão' },
           { id: 'passo-recheio', label: '03. Recheio' },
-          { id: 'passo-complementos', label: 'Acompanhamentos' },
+          { id: 'passo-complementos', label: 'Extras' },
           { id: 'passo-celebre', label: 'A Celebração' }
         ];
 
@@ -177,14 +193,11 @@
 
           const [builder, setBuilder] = useState({ corte: null, marinada: null, recheio: null });
           const [activeSection, setActiveSection] = useState('capa');
-          
-          // Estado para o Banner Cinematico
           const [currentSlide, setCurrentSlide] = useState(0);
 
           const requestRef = useRef();
           const isIdle = useRef(true);
 
-          // Efeito Lanterna Infinito
           const animateSpotlight = (time) => {
             if (isIdle.current) {
               const speed = 0.0012;
@@ -217,17 +230,15 @@
             };
           }, []);
 
-          // Timer do Banner de Família
           useEffect(() => {
             if (stage === 'shop') {
               const interval = setInterval(() => {
                 setCurrentSlide(prev => (prev === 0 ? 1 : 0));
-              }, 5000); // Troca a cada 5 segundos
+              }, 5000); 
               return () => clearInterval(interval);
             }
           }, [stage]);
 
-          // Intersection Observer para a Timeline e Revelações
           useEffect(() => {
             if (stage === 'shop') {
               const observer = new IntersectionObserver((entries) => {
@@ -255,23 +266,24 @@
           const handleSelectCorte = (item) => {
             triggerVibration(15);
             setBuilder(prev => ({ ...prev, corte: item, recheio: item.type === 'classico' ? null : prev.recheio }));
-            document.getElementById('passo-marinada').scrollIntoView({ behavior: 'smooth' });
+            setTimeout(() => document.getElementById('passo-marinada').scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
           };
 
           const handleSelectMarinada = (item) => {
             triggerVibration(15);
             setBuilder(prev => ({ ...prev, marinada: item }));
-            if (builder.corte?.type === 'classico') {
-              document.getElementById('passo-finalizar').scrollIntoView({ behavior: 'smooth' });
-            } else {
-              document.getElementById('passo-recheio').scrollIntoView({ behavior: 'smooth' });
-            }
+            setTimeout(() => {
+              if (builder.corte?.type === 'classico') {
+                document.getElementById('passo-complementos').scrollIntoView({ behavior: 'smooth', block: 'start' });
+              } else {
+                document.getElementById('passo-recheio').scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }, 100);
           };
 
           const handleSelectRecheio = (item) => {
             triggerVibration(15);
             setBuilder(prev => ({ ...prev, recheio: item }));
-            document.getElementById('passo-finalizar').scrollIntoView({ behavior: 'smooth' });
           };
 
           const addCustomChickenToCart = () => {
@@ -294,7 +306,7 @@
             setCart(prev => [...prev, { ...customItem, qty: 1 }]);
             setBuilder({ corte: null, marinada: null, recheio: null }); 
             showToast(`${customItem.name} adicionado.`);
-            document.getElementById('passo-complementos').scrollIntoView({ behavior: 'smooth' });
+            setTimeout(() => document.getElementById('passo-complementos').scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
           };
 
           const addExtraToCart = (item) => {
@@ -316,7 +328,6 @@
           const freightValue = cart.length > 0 ? BAIRROS_FRETE[bairro] : 0;
           const total = subtotal + freightValue;
 
-          // Lógica da Barra Inteligente de Conversão (Smart Sticky Bar)
           const isBuilderActive = builder.corte !== null;
           const isBuilderComplete = builder.corte && builder.marinada && (builder.corte.type === 'classico' || builder.recheio);
           
@@ -324,16 +335,16 @@
             if (isBuilderComplete) {
               addCustomChickenToCart();
             } else if (isBuilderActive && !builder.marinada) {
-              document.getElementById('passo-marinada').scrollIntoView({ behavior: 'smooth' });
+              document.getElementById('passo-marinada').scrollIntoView({ behavior: 'smooth', block: 'center' });
               triggerVibration(10);
             } else if (isBuilderActive && builder.corte.type === 'recheado' && !builder.recheio) {
-              document.getElementById('passo-recheio').scrollIntoView({ behavior: 'smooth' });
+              document.getElementById('passo-recheio').scrollIntoView({ behavior: 'smooth', block: 'center' });
               triggerVibration(10);
             } else if (cart.length > 0) {
               setIsCartOpen(true);
               triggerVibration(10);
             } else {
-              document.getElementById('passo-corte').scrollIntoView({ behavior: 'smooth' });
+              document.getElementById('passo-corte').scrollIntoView({ behavior: 'smooth', block: 'center' });
               triggerVibration(10);
             }
           };
@@ -352,8 +363,8 @@
                   </div>
                   <div className="flex flex-col items-center gap-6 pointer-events-auto" style={{ animation: 'fadeInUpFixed 1.5s cubic-bezier(0.16, 1, 0.3, 1) both', animationDelay: '0.5s' }}>
                     <div className="w-[1px] h-20 bg-gradient-to-b from-transparent via-[#D4AF37] to-transparent opacity-50"></div>
-                    <button onClick={() => { triggerVibration([40, 30, 40]); setStage('shop'); }} className="group relative px-12 py-5 border border-[#D4AF37]/30 bg-black/40 backdrop-blur-md text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black">
-                      <span className="relative z-10">Conhecer</span>
+                    <button onClick={() => { triggerVibration([40, 30, 40]); setStage('shop'); }} className="group relative px-12 py-5 border border-[#D4AF37]/30 bg-black/40 backdrop-blur-md text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black rounded-full">
+                      <span className="relative z-10">Entrar</span>
                       <div className="absolute inset-0 bg-[#D4AF37] translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
                     </button>
                   </div>
@@ -365,10 +376,10 @@
 
           // --- BOUTIQUE ---
           return (
-            <div className="min-h-screen text-[#F4F1EA] font-sans selection:bg-[#D4AF37] selection:text-black">
+            <div className="min-h-screen text-[#F4F1EA] font-sans selection:bg-[#D4AF37] selection:text-black pb-24 md:pb-0">
               <div className="fixed inset-0 opacity-40 pointer-events-none noise-bg mix-blend-soft-light z-0"></div>
 
-              {/* TIMELINE LATERAL */}
+              {/* TIMELINE LATERAL (Desktop) */}
               <div className="fixed left-8 top-1/2 -translate-y-1/2 z-30 hidden xl:flex flex-col gap-8">
                 {TIMELINE_STEPS.map(step => (
                   <div key={step.id} className="flex items-center gap-4 cursor-pointer group" onClick={() => document.getElementById(step.id).scrollIntoView({behavior: 'smooth'})}>
@@ -380,20 +391,20 @@
                 ))}
               </div>
 
-              {/* TOAST NOTIFICATION */}
-              <div className={`fixed top-28 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 transform ${toast ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none'}`}>
-                <div className="bg-[#050505] border border-white/10 text-[#F4F1EA] px-8 py-4 rounded-full text-[10px] tracking-widest uppercase flex items-center gap-4 shadow-2xl">
-                  <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse"></div>
+              {/* TOAST NOTIFICATION (App-like) */}
+              <div className={`fixed top-24 md:top-28 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 transform ${toast ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none'}`}>
+                <div className="bg-[#111111] border border-[#D4AF37]/30 text-[#F4F1EA] px-6 py-3 rounded-full text-[10px] tracking-widest uppercase flex items-center gap-3 shadow-[0_15px_30px_rgba(0,0,0,0.8)]">
+                  <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse shadow-[0_0_5px_#D4AF37]"></div>
                   <span>{toast}</span>
                 </div>
               </div>
 
-              {/* BARRA INTELIGENTE DE CONVERSÃO (MOBILE STICKY BOTTOM) */}
+              {/* MOBILE SMART STICKY BAR (App-like Bottom Navigation) */}
               <div className={`fixed bottom-0 left-0 w-full z-40 transition-transform duration-500 ease-in-out md:hidden ${stage === 'shop' && !isCartOpen ? 'translate-y-0' : 'translate-y-full'}`}>
-                <div className="bg-[#050505]/90 backdrop-blur-2xl border-t border-white/10 p-4 pb-6 shadow-[0_-10px_40px_rgba(0,0,0,0.8)]">
+                <div className="bg-[#050505]/95 backdrop-blur-2xl border-t border-white/10 p-4 pb-6 shadow-[0_-10px_40px_rgba(0,0,0,0.9)]">
                   <button 
                     onClick={handleStickyBarClick}
-                    className={`w-full py-4 rounded-full font-bold uppercase tracking-[0.2em] text-[10px] transition-all duration-300 flex justify-center items-center gap-3 ${
+                    className={`w-full py-4 rounded-xl font-bold uppercase tracking-[0.2em] text-[10px] transition-all duration-300 flex justify-center items-center gap-3 ${
                       isBuilderComplete 
                         ? 'bg-[#D4AF37] text-black shadow-[0_0_20px_rgba(212,175,55,0.3)]' 
                         : cart.length > 0 && !isBuilderActive
@@ -401,29 +412,29 @@
                           : 'bg-white/10 text-[#D4AF37] border border-[#D4AF37]/30'
                     }`}
                   >
-                    {!isBuilderActive && cart.length === 0 && 'Iniciar Reserva'}
-                    {isBuilderActive && !builder.marinada && 'Continuar: Escolher Infusão'}
-                    {isBuilderActive && builder.marinada && builder.corte?.type === 'recheado' && !builder.recheio && 'Continuar: Escolher Recheio'}
-                    {isBuilderComplete && `Adicionar Preparo (+ R$ ${builder.corte.price})`}
-                    {!isBuilderActive && cart.length > 0 && `Ver Reserva (R$ ${total.toFixed(2)})`}
+                    {!isBuilderActive && cart.length === 0 && 'Iniciar Seleção'}
+                    {isBuilderActive && !builder.marinada && 'Próximo: Escolher Infusão'}
+                    {isBuilderActive && builder.marinada && builder.corte?.type === 'recheado' && !builder.recheio && 'Próximo: Escolher Recheio'}
+                    {isBuilderComplete && `Adicionar (R$ ${builder.corte.price})`}
+                    {!isBuilderActive && cart.length > 0 && `Finalizar (R$ ${total.toFixed(2)})`}
                   </button>
                 </div>
               </div>
 
-              {/* HEADER */}
-              <nav className="fixed top-0 w-full z-40 bg-[#050505]/80 backdrop-blur-md border-b border-white/5">
-                <div className="max-w-6xl mx-auto px-6 h-20 flex justify-between items-center xl:pl-48">
+              {/* HEADER SUPERIOR */}
+              <nav className="fixed top-0 w-full z-40 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 shadow-2xl">
+                <div className="max-w-6xl mx-auto px-6 h-20 md:h-24 flex justify-between items-center xl:pl-48">
                   <div className="flex items-center gap-4">
                     <img src={LOGO_URL} alt="DORÉ" className="h-8 opacity-90" />
                   </div>
                   <button onClick={() => { triggerVibration(10); setIsCartOpen(true); }} className="flex items-center gap-4 group">
                     <div className="text-right hidden sm:block">
-                      <p className="text-[8px] tracking-[0.2em] uppercase opacity-40 group-hover:opacity-100 transition-opacity">Sua Seleção</p>
+                      <p className="text-[8px] tracking-[0.2em] uppercase opacity-40 group-hover:opacity-100 transition-opacity">Sua Reserva</p>
                       <p className="text-xs font-mono text-[#D4AF37]">R$ {total.toFixed(2)}</p>
                     </div>
-                    <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#D4AF37] transition-all relative">
+                    <div className="w-10 h-10 rounded-full border border-white/10 bg-[#111111] flex items-center justify-center group-hover:border-[#D4AF37] transition-all relative">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
-                      {cart.length > 0 && <span className="absolute top-0 right-0 w-2 h-2 bg-[#D4AF37] rounded-full"></span>}
+                      {cart.length > 0 && <span className="absolute top-0 right-0 w-2 h-2 bg-[#D4AF37] rounded-full shadow-[0_0_5px_#D4AF37]"></span>}
                     </div>
                   </button>
                 </div>
@@ -435,11 +446,11 @@
                 {/* 00. CAPA (HERO) */}
                 <div className="max-w-5xl mx-auto px-6 xl:pl-32 mb-32 reveal" id="capa">
                   
-                  {/* GATILHO DE ESCASSEZ */}
+                  {/* BADGE DE ESCASSEZ */}
                   <div className="flex justify-center lg:justify-start mb-8">
-                    <div className="inline-flex items-center gap-3 px-4 py-2 border border-[#D4AF37]/30 bg-[#D4AF37]/10 rounded-full backdrop-blur-sm">
+                    <div className="inline-flex items-center gap-3 px-4 py-2 border border-[#D4AF37]/20 bg-[#D4AF37]/5 rounded-full backdrop-blur-md">
                       <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse-soft"></div>
-                      <span className="text-[9px] uppercase tracking-[0.3em] text-[#D4AF37] font-semibold">
+                      <span className="text-[8px] uppercase tracking-[0.3em] text-[#D4AF37] font-semibold">
                         Lote de Domingo: Restam {UNIDADES_RESTANTES} Unidades
                       </span>
                     </div>
@@ -447,117 +458,194 @@
 
                   <div className="grid lg:grid-cols-2 gap-12 items-center">
                     <div className="text-center lg:text-left">
-                      <span className="text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase mb-6 block font-light">A Arte do Bem Viver</span>
+                      <span className="text-white/40 text-[9px] tracking-[0.5em] uppercase mb-4 block font-light">A Arte do Bem Viver</span>
                       <h2 className="text-5xl md:text-7xl lg:text-8xl font-serif leading-tight mb-6 tracking-tight text-white drop-shadow-2xl">
                         Crosta de Ouro.<br/>
-                        <span className="italic text-white/30 font-light">Suculência Preservada.</span>
+                        <span className="italic text-white/40 font-light">Suculência Preservada.</span>
                       </h2>
-                      <p className="text-white/50 font-light max-w-md mx-auto lg:mx-0 leading-relaxed text-md mb-10">
+                      <p className="text-white/50 font-light max-w-md mx-auto lg:mx-0 leading-relaxed text-sm mb-10">
                         Cada assado é finalizado no momento da sua escolha. Selecione a base, a infusão e acompanhe a tradição até a sua mesa.
                       </p>
                       <button 
                         onClick={() => { triggerVibration(10); document.getElementById('passo-corte').scrollIntoView({ behavior: 'smooth' }); }}
-                        className="px-10 py-5 border border-[#D4AF37]/30 bg-[#D4AF37]/5 rounded-full text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-500 font-bold text-[#D4AF37] backdrop-blur-md shadow-[0_0_15px_rgba(212,175,55,0.2)] hover:shadow-[0_0_25px_rgba(212,175,55,0.5)]"
+                        className="hidden md:inline-block px-10 py-5 border border-[#D4AF37]/30 bg-[#D4AF37]/5 rounded-full text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-500 font-bold text-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.1)] hover:shadow-[0_0_25px_rgba(212,175,55,0.4)]"
                       >
-                        Iniciar Montagem
+                        Iniciar Seleção
                       </button>
                     </div>
                     <div className="relative group flex justify-center">
-                      <div className="absolute inset-0 bg-[#D4AF37] blur-[100px] opacity-20 rounded-full"></div>
+                      <div className="absolute inset-0 bg-[#D4AF37] blur-[120px] opacity-10 rounded-full"></div>
                       <img src={SENSORIAL_IMG} alt="DORÉ" className="relative z-10 w-[80%] max-w-[450px] h-auto object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.8)] animate-[float_6s_ease-in-out_infinite]" />
                     </div>
                   </div>
                 </div>
 
                 {/* 01. O CORTE */}
-                <section id="passo-corte" className="max-w-5xl mx-auto px-6 xl:pl-32 mb-32 reveal scroll-mt-24">
-                  <div className="flex items-center gap-4 mb-10">
-                    <span className="text-[#D4AF37] font-serif text-3xl italic opacity-30">01</span>
-                    <h3 className="text-sm uppercase tracking-[0.3em] font-light text-white/70">A Base</h3>
+                <section id="passo-corte" className="max-w-5xl mx-auto px-6 xl:pl-32 mb-24 reveal scroll-mt-24">
+                  <div className="flex items-center gap-4 mb-8">
+                    <span className="text-[#D4AF37] font-serif text-2xl italic opacity-30">01</span>
+                    <h3 className="text-xs uppercase tracking-[0.3em] font-light text-white/70">A Base do Assado</h3>
                   </div>
-                  <div className="grid md:grid-cols-2 gap-8">
+                  <div className="grid md:grid-cols-2 gap-6">
                     {BUILDER_DATA.cortes.map(item => (
                       <div key={item.id} onClick={() => handleSelectCorte(item)} className={`group glass-panel p-2 overflow-hidden rounded-3xl ${builder.corte?.id === item.id ? 'selected border-[#D4AF37]' : ''}`}>
-                        <div className="aspect-[16/10] rounded-[1.5rem] overflow-hidden mb-6 relative bg-black">
+                        <div className="aspect-[16/10] rounded-[1.5rem] overflow-hidden mb-4 relative bg-[#050505]">
                           <img src={item.img} loading="lazy" className={`w-full h-full object-cover transition-all duration-1000 ${builder.corte?.id === item.id ? 'brightness-110 scale-105' : 'brightness-75 group-hover:brightness-100 group-hover:scale-105'}`} />
                           {builder.corte?.id === item.id && (
                             <div className="absolute top-4 right-4 bg-[#D4AF37] text-black text-[8px] uppercase tracking-widest px-3 py-1.5 rounded-full font-bold">Selecionado</div>
                           )}
                         </div>
-                        <div className="px-6 pb-6 text-center md:text-left">
+                        <div className="px-5 pb-5 text-center md:text-left">
                           <div className="flex flex-col md:flex-row justify-between items-baseline mb-2">
-                            <h4 className="text-2xl font-serif text-white group-hover:text-[#D4AF37] transition-colors">{item.name}</h4>
-                            <span className="font-mono text-sm opacity-60">R$ {item.price}</span>
+                            <h4 className="text-xl font-serif text-white group-hover:text-[#D4AF37] transition-colors">{item.name}</h4>
+                            <span className="font-mono text-xs opacity-60">R$ {item.price}</span>
                           </div>
-                          <p className="text-xs text-white/40 font-light leading-relaxed">{item.desc}</p>
+                          <p className="text-[10px] text-white/40 font-light leading-relaxed">{item.desc}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </section>
 
-                {/* O BOTÃO DE FINALIZAR CONSTRUÇÃO FOI REMOVIDO DAQUI (Evita cegueira). A Smart Bar ou a ação automática assume isso. Mas para Desktop, precisamos mantê-lo visível. */}
-                <div id="passo-finalizar" className={`max-w-5xl mx-auto px-6 xl:pl-32 mb-32 reveal transition-all duration-1000 hidden md:block ${(!builder.corte || !builder.marinada || (builder.corte.type === 'recheado' && !builder.recheio)) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                {/* CONTRASTE: SEÇÃO FULL-BLEED DARK */}
+                <div className="w-full bg-[#050505] py-20 mb-24 border-y border-white/5 reveal">
+                  <div className="max-w-5xl mx-auto px-6 xl:pl-32 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-12">
+                    <div className="max-w-lg">
+                      <span className="text-[#D4AF37] text-[8px] tracking-[0.4em] uppercase mb-4 block">Nossa Essência</span>
+                      <h3 className="text-3xl font-serif leading-tight text-white mb-4">O Tempo como <br/><span className="italic text-[#D4AF37]">Ingrediente.</span></h3>
+                      <p className="text-white/40 font-light leading-relaxed text-xs">
+                        Cada peça é tratada com respeito. O preparo lento garante a integridade da crosta, enquanto nossa embalagem desenvolvida sob medida preserva a temperatura até sua mesa.
+                      </p>
+                    </div>
+                    <div className="flex gap-10 opacity-80">
+                      <div className="text-center">
+                        <span className="block text-[#D4AF37] font-mono text-2xl mb-1">24h</span>
+                        <span className="text-[8px] uppercase tracking-widest text-white/50">Infusão</span>
+                      </div>
+                      <div className="w-[1px] h-10 bg-white/10"></div>
+                      <div className="text-center">
+                        <span className="block text-[#D4AF37] font-mono text-2xl mb-1">85°C</span>
+                        <span className="text-[8px] uppercase tracking-widest text-white/50">Interno</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 02. A MARINADA (App Cards List) */}
+                <section id="passo-marinada" className={`max-w-5xl mx-auto px-6 xl:pl-32 mb-24 reveal scroll-mt-24 transition-opacity duration-700 ${!builder.corte ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
+                  <div className="flex items-center gap-4 mb-6">
+                    <span className="text-[#D4AF37] font-serif text-3xl italic opacity-30">02</span>
+                    <h3 className="text-xs uppercase tracking-[0.3em] font-light text-white/70">A Infusão</h3>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    {BUILDER_DATA.marinadas.map(item => (
+                      <div key={item.id} onClick={() => handleSelectMarinada(item)} className={`app-card p-5 flex items-center justify-between cursor-pointer ${builder.marinada?.id === item.id ? 'selected' : ''}`}>
+                        <div className="flex items-center gap-5">
+                          <div className={`w-3.5 h-3.5 rounded-full border flex-shrink-0 ${builder.marinada?.id === item.id ? 'border-[#D4AF37] bg-[#D4AF37]' : 'border-white/20'} transition-colors`}></div>
+                          <div>
+                            <h4 className={`text-sm font-serif transition-colors ${builder.marinada?.id === item.id ? 'text-[#D4AF37]' : 'text-white'}`}>{item.name}</h4>
+                            <p className="text-[9px] text-white/40 font-light mt-1 leading-relaxed">{item.desc}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* 03. O RECHEIO (App Cards List) */}
+                <section id="passo-recheio" className={`max-w-5xl mx-auto px-6 xl:pl-32 mb-24 reveal scroll-mt-24 transition-all duration-700 ${(!builder.marinada || builder.corte?.type === 'classico') ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
+                  <div className="flex items-center gap-4 mb-6 relative">
+                    <span className="text-[#D4AF37] font-serif text-3xl italic opacity-30">03</span>
+                    <h3 className="text-xs uppercase tracking-[0.3em] font-light text-white/70">A Arte do Recheio</h3>
+                    {builder.corte?.type === 'classico' && (
+                      <span className="absolute right-0 text-[8px] text-[#D4AF37] uppercase tracking-widest bg-[#D4AF37]/10 px-3 py-1 rounded">Bloqueado para Corte Clássico</span>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    {BUILDER_DATA.recheios.map(item => (
+                      <div key={item.id} onClick={() => handleSelectRecheio(item)} className={`app-card p-5 flex items-center justify-between cursor-pointer ${builder.recheio?.id === item.id ? 'selected' : ''}`}>
+                        <div className="flex items-center gap-5">
+                          <div className={`w-3.5 h-3.5 rounded-full border flex-shrink-0 ${builder.recheio?.id === item.id ? 'border-[#D4AF37] bg-[#D4AF37]' : 'border-white/20'} transition-colors`}></div>
+                          <div>
+                            <h4 className={`text-sm font-serif transition-colors ${builder.recheio?.id === item.id ? 'text-[#D4AF37]' : 'text-white'}`}>{item.name}</h4>
+                            <p className="text-[9px] text-white/40 font-light mt-1 leading-relaxed">{item.desc}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* BOTÃO DESKTOP FINALIZAR CONSTRUÇÃO */}
+                <div className={`max-w-5xl mx-auto px-6 xl:pl-32 mb-32 reveal transition-all duration-1000 hidden md:block ${(!builder.corte || !builder.marinada || (builder.corte.type === 'recheado' && !builder.recheio)) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                    <button 
                       onClick={addCustomChickenToCart}
-                      className="w-auto px-12 py-5 border border-[#D4AF37]/30 bg-[#D4AF37]/10 rounded-full text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-500 font-bold text-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.1)]"
+                      className="w-auto px-10 py-4 border border-[#D4AF37]/40 bg-[#D4AF37]/10 rounded-full text-[9px] uppercase tracking-[0.3em] hover:bg-[#D4AF37] hover:text-black transition-all duration-500 font-bold text-[#D4AF37]"
                     >
-                      Adicionar Preparo à Reserva (R$ {builder.corte?.price})
+                      Adicionar à Seleção (R$ {builder.corte?.price})
                     </button>
                 </div>
 
-                {/* 04. EXTRAS */}
-                <section id="passo-complementos" className="max-w-5xl mx-auto px-6 xl:pl-32 mb-40 reveal scroll-mt-24 border-t border-white/10 pt-20">
-                  <div className="mb-12">
+                {/* 04. EXTRAS (Farofas Premium e Molhos Artesanais - Estilo Cards App) */}
+                <section id="passo-complementos" className="max-w-5xl mx-auto px-6 xl:pl-32 mb-20 reveal scroll-mt-24 border-t border-white/5 pt-16">
+                  <div className="mb-10 text-center md:text-left">
                     <span className="text-[#D4AF37] text-[9px] tracking-[0.4em] uppercase block mb-2 font-light">Para Acompanhar</span>
+                    <h3 className="text-2xl font-serif text-white">Toque Final</h3>
                   </div>
                   
-                  <div className="grid lg:grid-cols-2 gap-16">
+                  <div className="grid lg:grid-cols-2 gap-12">
+                    {/* Farofas Premium */}
                     <div>
-                      <h4 className="font-serif text-xl text-white/70 mb-6 border-b border-white/5 pb-4">Guarnições</h4>
-                      {EXTRAS.farofas.map(item => (
-                        <div key={item.id} className="py-4 flex justify-between items-center group border-b border-white/5">
-                          <div className="max-w-[70%]">
-                            <h5 className="font-serif text-white group-hover:text-[#D4AF37] transition-colors cursor-default">{item.name}</h5>
-                            <p className="text-[9px] text-white/30 uppercase tracking-widest mt-1">{item.desc}</p>
+                      <h4 className="font-sans text-[10px] uppercase tracking-[0.2em] text-white/50 mb-4 pl-2">Farofas Premium</h4>
+                      <div className="flex flex-col gap-3">
+                        {EXTRAS.farofas.map(item => (
+                          <div key={item.id} className="app-card p-5 flex justify-between items-center group">
+                            <div className="max-w-[70%]">
+                              <h5 className="font-serif text-sm text-white group-hover:text-[#D4AF37] transition-colors">{item.name}</h5>
+                              <p className="text-[9px] text-white/40 mt-1 leading-relaxed">{item.desc}</p>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                              <span className="font-mono text-white/60 text-xs">R$ {item.price}</span>
+                              <button onClick={() => addExtraToCart(item)} className="text-[#D4AF37] hover:text-white transition-colors bg-[#D4AF37]/10 rounded-full p-1.5 px-3 text-[8px] uppercase tracking-widest font-bold">
+                                Incluir
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-4">
-                            <span className="font-mono text-white/50 text-xs">R$ {item.price}</span>
-                            <button onClick={() => addExtraToCart(item)} className="text-[#D4AF37] hover:text-white transition-colors p-2">
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 5v14M5 12h14"/></svg>
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
 
+                    {/* Molhos Artesanais */}
                     <div>
-                      <h4 className="font-serif text-xl text-white/70 mb-6 border-b border-white/5 pb-4">Assinaturas</h4>
-                      {EXTRAS.molhos.map(item => (
-                        <div key={item.id} className="py-4 flex justify-between items-center group border-b border-white/5">
-                          <div className="max-w-[70%]">
-                            <h5 className="font-serif text-white group-hover:text-[#D4AF37] transition-colors cursor-default">{item.name}</h5>
+                      <h4 className="font-sans text-[10px] uppercase tracking-[0.2em] text-white/50 mb-4 pl-2">Molhos Artesanais</h4>
+                      <div className="flex flex-col gap-3">
+                        {EXTRAS.molhos.map(item => (
+                          <div key={item.id} className="app-card p-5 flex justify-between items-center group">
+                            <div className="max-w-[70%]">
+                              <h5 className="font-serif text-sm text-white group-hover:text-[#D4AF37] transition-colors">{item.name}</h5>
+                              <p className="text-[9px] text-white/40 mt-1 leading-relaxed">{item.desc}</p>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                              <span className="font-mono text-white/60 text-xs">R$ {item.price}</span>
+                              <button onClick={() => addExtraToCart(item)} className="text-[#D4AF37] hover:text-white transition-colors bg-[#D4AF37]/10 rounded-full p-1.5 px-3 text-[8px] uppercase tracking-widest font-bold">
+                                Incluir
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-4">
-                            <span className="font-mono text-white/50 text-xs">R$ {item.price}</span>
-                            <button onClick={() => addExtraToCart(item)} className="text-[#D4AF37] hover:text-white transition-colors p-2">
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 5v14M5 12h14"/></svg>
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </section>
 
-                {/* BANNER CINEMÁTICO: A CELEBRAÇÃO (NOVO) */}
-                <section id="passo-celebre" className="max-w-6xl mx-auto mb-20 reveal scroll-mt-24">
-                  <div className="text-center mb-12">
+                {/* BANNER CINEMÁTICO: A CELEBRAÇÃO */}
+                <section id="passo-celebre" className="max-w-6xl mx-auto mb-20 reveal scroll-mt-24 mt-32">
+                  <div className="text-center mb-8">
                     <span className="text-[#D4AF37] text-[9px] tracking-[0.4em] uppercase block mb-3 font-light">O Propósito</span>
                     <h3 className="text-3xl font-serif text-white">A Arte de Viver Bem</h3>
                   </div>
                   
-                  <div className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-[2.5rem] overflow-hidden glass-panel group cursor-default">
+                  <div className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-[2rem] md:rounded-[3rem] overflow-hidden bg-[#050505] cursor-default border border-white/5 shadow-2xl">
                     {BANNER_IMAGES.map((img, index) => (
                       <img
                         key={index}
@@ -565,7 +653,7 @@
                         loading="lazy"
                         alt="A Celebração"
                         className={`absolute inset-0 w-full h-full object-cover transition-all duration-[2000ms] ease-in-out ${
-                          index === currentSlide ? 'opacity-50 scale-100' : 'opacity-0 scale-105'
+                          index === currentSlide ? 'opacity-60 scale-100' : 'opacity-0 scale-105'
                         }`}
                       />
                     ))}
@@ -577,65 +665,66 @@
 
               {/* FOOTER MINIMALISTA */}
               <footer className="border-t border-white/5 py-12 text-center relative z-10 bg-[#050505]">
-                <img src={LOGO_URL} alt="DORÉ" className="h-8 mx-auto mb-6 opacity-40" />
-                <p className="text-[9px] uppercase tracking-[0.4em] text-white/30 font-light mb-2">Chapecó • SC</p>
-                <p className="text-[7px] uppercase tracking-[0.2em] text-white/20 font-mono">© 2026 Boutique DORÉ. Todos os direitos reservados.</p>
+                <img src={LOGO_URL} alt="DORÉ" className="h-6 mx-auto mb-6 opacity-30" />
+                <p className="text-[8px] uppercase tracking-[0.4em] text-white/30 font-light mb-2">Chapecó • SC</p>
+                <p className="text-[7px] uppercase tracking-[0.2em] text-white/10 font-mono">© 2026 Boutique DORÉ. Todos os direitos reservados.</p>
               </footer>
 
-              {/* SELEÇÃO LADO DIREITO (Carrinho Minimalista) */}
+              {/* CARRINHO DE RESERVA (App Drawer) */}
               <div className={`fixed inset-0 z-50 transition-all duration-500 ${isCartOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { triggerVibration(10); setIsCartOpen(false); }}></div>
+                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => { triggerVibration(10); setIsCartOpen(false); }}></div>
                 <div className={`absolute top-0 right-0 h-full w-full max-w-md bg-[#050505] border-l border-white/5 shadow-[-20px_0_50px_rgba(0,0,0,0.9)] flex flex-col transition-transform duration-500 ease-out transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                   
-                  <div className="p-8 border-b border-white/5 flex justify-between items-center">
-                    <h4 className="text-lg font-serif tracking-widest text-[#F4F1EA]">Sua Seleção</h4>
-                    <button onClick={() => { triggerVibration(10); setIsCartOpen(false); }} className="opacity-40 hover:opacity-100 transition-opacity p-2">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  <div className="p-6 border-b border-white/5 flex justify-between items-center bg-[#0A0A0A]">
+                    <h4 className="text-md font-serif tracking-widest text-[#D4AF37]">Sua Seleção</h4>
+                    <button onClick={() => { triggerVibration(10); setIsCartOpen(false); }} className="opacity-40 hover:opacity-100 hover:text-white transition-colors p-2 bg-white/5 rounded-full">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-8 space-y-10">
+                  <div className="flex-1 overflow-y-auto p-6 space-y-8">
                     {cart.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center opacity-30 text-center">
-                        <p className="text-[9px] uppercase tracking-[0.4em] font-light text-white">Nenhum item selecionado</p>
+                        <p className="text-[9px] uppercase tracking-[0.4em] font-light text-white">Lista vazia</p>
                       </div>
                     ) : (
                       <div className="space-y-8">
-                        <div className="space-y-4 border-b border-white/5 pb-8">
+                        <div className="space-y-3 border-b border-white/5 pb-8">
                           {cart.map(item => (
-                            <div key={item.id} className="flex justify-between items-start py-2">
+                            <div key={item.id} className="app-card p-4 flex justify-between items-start">
                               <div className="max-w-[70%]">
-                                <p className="font-serif text-sm text-[#F4F1EA]">{item.name} <span className="text-[9px] font-mono text-white/30 ml-2">x{item.qty}</span></p>
+                                <p className="font-serif text-sm text-[#F4F1EA] leading-tight">{item.name}</p>
                                 <p className="text-[8px] font-sans opacity-40 uppercase mt-1 leading-relaxed">{item.desc}</p>
+                                <span className="text-[9px] font-mono opacity-80 text-[#D4AF37] mt-2 inline-block">Qtd: {item.qty}</span>
                               </div>
-                              <div className="flex flex-col items-end gap-2">
-                                <button onClick={() => removeFromCart(item.id)} className="text-white/20 hover:text-[#D4AF37] transition-colors">
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                              <div className="flex flex-col items-end justify-between h-full">
+                                <button onClick={() => removeFromCart(item.id)} className="text-white/20 hover:text-red-500 transition-colors">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
-                                <span className="font-mono text-white/60 text-xs mt-1">R$ {item.price * item.qty}</span>
+                                <span className="font-mono text-white text-xs mt-3">R$ {item.price * item.qty}</span>
                               </div>
                             </div>
                           ))}
                         </div>
 
                         <div className="space-y-5">
-                          <h5 className="text-[9px] uppercase tracking-[0.3em] text-white/50 font-light">Detalhes da Entrega</h5>
+                          <h5 className="text-[9px] uppercase tracking-[0.3em] text-[#D4AF37] font-light pl-1">Detalhes da Entrega</h5>
                           <div className="space-y-3">
                             <div className="flex flex-col gap-1.5">
-                              <label className="text-[8px] uppercase tracking-widest text-white/30">Horário</label>
-                              <select value={horario} onChange={(e) => setHorario(e.target.value)} className="w-full bg-[#0A0A0A] border border-white/5 rounded-lg px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors">
+                              <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Horário</label>
+                              <select value={horario} onChange={(e) => setHorario(e.target.value)} className="w-full app-card px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors">
                                 {HORARIOS_ENTREGA.map(h => <option key={h} value={h}>{h}</option>)}
                               </select>
                             </div>
                             <div className="flex flex-col gap-1.5">
-                              <label className="text-[8px] uppercase tracking-widest text-white/30">Bairro</label>
-                              <select value={bairro} onChange={(e) => setBairro(e.target.value)} className="w-full bg-[#0A0A0A] border border-white/5 rounded-lg px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors">
+                              <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Bairro</label>
+                              <select value={bairro} onChange={(e) => setBairro(e.target.value)} className="w-full app-card px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors">
                                 {Object.keys(BAIRROS_FRETE).map(b => <option key={b} value={b}>{b}</option>)}
                               </select>
                             </div>
                             <div className="flex flex-col gap-1.5">
-                              <label className="text-[8px] uppercase tracking-widest text-white/30">Observações</label>
-                              <input type="text" value={instrucoes} onChange={(e) => setInstrucoes(e.target.value)} placeholder="Condomínio, bloco..." className="w-full bg-[#0A0A0A] border border-white/5 rounded-lg px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors placeholder:text-white/20" />
+                              <label className="text-[8px] uppercase tracking-widest text-white/30 pl-1">Observações para o Entregador</label>
+                              <input type="text" value={instrucoes} onChange={(e) => setInstrucoes(e.target.value)} placeholder="Apt, bloco, ponto de referência..." className="w-full app-card px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors placeholder:text-white/20" />
                             </div>
                           </div>
                         </div>
@@ -644,7 +733,7 @@
                   </div>
 
                   {cart.length > 0 && (
-                    <div className="p-8 border-t border-white/5 bg-[#050505] space-y-5">
+                    <div className="p-6 border-t border-white/5 bg-[#0A0A0A] space-y-4">
                       <div className="space-y-2">
                         <div className="flex justify-between text-[9px] text-white/40 tracking-[0.1em] uppercase">
                           <span>Subtotal</span>
@@ -656,7 +745,7 @@
                         </div>
                       </div>
                       
-                      <div className="pt-4 flex justify-between items-baseline border-t border-white/5">
+                      <div className="pt-3 flex justify-between items-baseline border-t border-white/5">
                         <span className="text-xl font-serif text-white">Total</span>
                         <span className="text-lg font-mono text-[#D4AF37]">R$ {total.toFixed(2)}</span>
                       </div>
@@ -667,9 +756,9 @@
                           const finalMsg = `Olá, DORÉ! Gostaria de confirmar minha seleção.%0A%0A*📦 Pedido:*%0A${itemsMsg}%0A%0A*⏱ Horário:* ${horario}%0A*📍 Bairro:* ${bairro}%0A*Obs:* ${instrucoes || 'Nenhuma'}%0A%0A*💳 Total:* R$ ${total.toFixed(2)}%0A%0A_Aguardando confirmação._`;
                           window.open(`https://wa.me/5549999999999?text=${finalMsg}`);
                         }}
-                        className="w-full bg-white text-black py-4 rounded-full font-bold uppercase tracking-[0.2em] text-[9px] hover:bg-[#D4AF37] transition-colors mt-2"
+                        className="w-full bg-[#D4AF37] text-black py-4 rounded-xl font-bold uppercase tracking-[0.2em] text-[9px] hover:bg-white transition-colors mt-2"
                       >
-                        Enviar Pedido
+                        Enviar Reserva
                       </button>
                     </div>
                   )}
