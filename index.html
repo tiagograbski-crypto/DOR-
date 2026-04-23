@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DORÉ | Boutique de Assados</title>
+    <title>DORÉ | Assados</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,11 +12,11 @@
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     
-    <!-- Babel (Tradutor de JSX para o Navegador) -->
+    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        /* CSS Global e Utilitários de Luxo */
+        /* CSS Global e Tipografia */
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap');
         
         :root { --mouse-x: 50%; --mouse-y: 50%; }
@@ -29,6 +29,7 @@
           -webkit-font-smoothing: antialiased;
         }
 
+        /* Fundo de Pedra (Ardósia/Cimento) */
         .slate-bg {
           background-color: #0D0C0A;
           background-image: 
@@ -41,36 +42,35 @@
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
         
-        /* Glassmorphism Dinâmico com Brilho Sensorial */
+        /* Glassmorphism Dinâmico */
         .glass-panel {
           background: rgba(255, 255, 255, 0.02);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
           border: 1px solid rgba(255, 255, 255, 0.04);
-          transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+          transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+          cursor: pointer;
         }
         
-        /* O "Brilho" que acende ao rolar e no hover */
-        .glass-panel.visible, .glass-panel:hover {
-          border-color: rgba(212, 175, 55, 0.3);
+        .glass-panel:hover, .glass-panel.selected {
+          border-color: rgba(212, 175, 55, 0.5);
           background: rgba(255, 255, 255, 0.04);
-          transform: translateY(-8px);
-          box-shadow: 0 20px 50px rgba(212, 175, 55, 0.15), 0 30px 60px rgba(0, 0, 0, 0.6);
+          transform: translateY(-4px);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
 
         .text-shadow-glow { text-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
 
         @keyframes float {
           0% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
+          50% { transform: translateY(-15px); }
           100% { transform: translateY(0px); }
         }
 
         .reveal { 
           opacity: 0; 
-          transform: translateY(60px); 
-          transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1); 
+          transform: translateY(30px); 
+          transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1); 
           will-change: opacity, transform;
         }
         .reveal.visible { 
@@ -78,18 +78,14 @@
           transform: translateY(0); 
         }
 
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #0D0C0A; }
         ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
         
-        select { 
-          appearance: none; 
-          -webkit-appearance: none; 
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23D4AF37'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-          background-repeat: no-repeat;
-          background-position: right 1rem center;
-          background-size: 1em;
+        select, input { 
+          appearance: none; -webkit-appearance: none; 
+          outline: none;
         }
         input::placeholder { color: rgba(255,255,255,0.2); }
     </style>
@@ -99,48 +95,60 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // Extraindo os Hooks do React injetado via CDN
         const { useState, useEffect, useMemo, useRef } = React;
 
         const LOGO_URL = "https://alisachapeco.com.br/assets/images/image19.png?v=5f40d70b";
         const SENSORIAL_IMG = "https://alisachapeco.com.br/assets/images/image21.png?v=e9c990c3";
         const PATTERN_URL = "https://alisachapeco.com.br/assets/images/image18.png?v=337fcc30";
 
-        const PRODUCTS = {
-          frangos: [
-            { 
-              id: 'f1', name: 'DORÉ Clássico', 
-              desc: 'Assado lentamente em baixa temperatura. Crosta de ouro e suculência preservada.', 
-              price: 115, img: 'https://alisachapeco.com.br/assets/images/image20.jpg?v=e9c990c3' 
-            },
-            { 
-              id: 'f2', name: 'DORÉ Recheado', 
-              desc: 'Frango nobre recheado com farofa artesanal de miúdos, sálvia e especiarias.', 
-              price: 145, img: 'https://alisachapeco.com.br/assets/images/image18.jpg?v=e9c990c3' 
-            }
+        // IMAGENS DO BANNER DE FAMÍLIA
+        const BANNER_IMAGES = [
+          "https://alisachapeco.com.br/assets/images/image23.jpg?v=d4bc2a9d",
+          "https://alisachapeco.com.br/assets/images/image24.jpg?v=d9123dc9"
+        ];
+
+        // --- BANCO DE DADOS ---
+        const BUILDER_DATA = {
+          cortes: [
+            { id: 'c1', name: 'DORÉ Clássico', type: 'classico', desc: 'A ave em sua essência, sem recheio. Foco absoluto na suculência e na crosta.', price: 115, img: 'https://alisachapeco.com.br/assets/images/image20.jpg?v=e9c990c3' },
+            { id: 'c2', name: 'DORÉ Recheado', type: 'recheado', desc: 'Desossado parcialmente para abrigar nossos recheios artesanais.', price: 145, img: 'https://alisachapeco.com.br/assets/images/image18.jpg?v=e9c990c3' }
           ],
-          farofas: [
-            { id: 'a1', name: 'Farofa de Pistache & Bacon', desc: 'Pistaches selecionados, bacon artesanal e manteiga noisette.', price: 42 },
-            { id: 'a2', name: 'Farofa Panko Gourmet', desc: 'Crocância extrema finalizada com autêntica manteiga de garrafa.', price: 35 }
+          marinadas: [
+            { id: 'm1', name: 'Vinho Branco, Siciliano & Ervas', desc: 'Toque floral e acidez elegante. A infusão botânica clássica.' },
+            { id: 'm2', name: 'Cerveja Stout & Mostarda Dijon', desc: 'Notas amendoadas e sabor profundo. Caramelização intensa.' },
+            { id: 'm3', name: 'Laranja Cravo & Alecrim', desc: 'Cítrico e aromático. Uma homenagem à tradição do assado.' }
           ],
-          molhos: [
-            { id: 'm1', name: 'Aioli de Alho Negro', desc: 'Sabor umami profundo e notas adocicadas sutis.', price: 18 },
-            { id: 'm2', name: 'Chimichurri da Boutique', desc: 'Ervas frescas e azeite extra virgem de primeira prensa.', price: 15 },
-            { id: 'm3', name: 'Mostarda & Mel Silvestre', desc: 'O equilíbrio perfeito e nobre entre picância e doçura.', price: 16 }
+          recheios: [
+            { id: 'r1', name: 'Farofa de Miúdos & Sálvia', desc: 'Miúdos selecionados, bacon defumado e ervas frescas.' },
+            { id: 'r2', name: 'Maçã Verde & Castanhas', desc: 'O contraste ideal entre o salgado e a crocância das castanhas.' },
+            { id: 'r3', name: 'Queijo Coalho & Alho Poró', desc: 'Textura cremosa que se funde aos sucos naturais durante o processo.' }
           ]
         };
 
-        const BAIRROS_FRETE = {
-          'Centro': 12, 'Efapi': 20, 'Santa Maria': 15,
-          'Passo dos Fortes': 15, 'Bela Vista': 12, 'Outros': 18
+        const EXTRAS = {
+          farofas: [
+            { id: 'e1', name: 'Farofa de Pistache', desc: 'Pistaches torrados e manteiga noisette.', price: 42 },
+            { id: 'e2', name: 'Farofa Panko', desc: 'Crocância extrema na autêntica manteiga de garrafa.', price: 35 }
+          ],
+          molhos: [
+            { id: 'e3', name: 'Aioli de Alho Negro', desc: 'Sabor umami e final adocicado.', price: 18 },
+            { id: 'e4', name: 'Chimichurri DORÉ', desc: 'Ervas frescas e azeite extra virgem.', price: 15 },
+            { id: 'e5', name: 'Mostarda & Mel', desc: 'O equilíbrio perfeito.', price: 16 }
+          ]
         };
 
-        const HORARIOS_ENTREGA = [
-          'Domingo | 11:00 - 11:30', 'Domingo | 11:30 - 12:00',
-          'Domingo | 12:00 - 12:30', 'Domingo | 12:30 - 13:00'
+        const BAIRROS_FRETE = { 'Centro': 12, 'Efapi': 20, 'Santa Maria': 15, 'Passo dos Fortes': 15, 'Bela Vista': 12, 'Outros': 18 };
+        const HORARIOS_ENTREGA = ['Domingo | 11:00 - 11:30', 'Domingo | 11:30 - 12:00', 'Domingo | 12:00 - 12:30', 'Domingo | 12:30 - 13:00'];
+
+        const TIMELINE_STEPS = [
+          { id: 'capa', label: 'Início' },
+          { id: 'passo-corte', label: '01. A Ave' },
+          { id: 'passo-marinada', label: '02. Infusão' },
+          { id: 'passo-recheio', label: '03. Recheio' },
+          { id: 'passo-complementos', label: 'Acompanhamentos' },
+          { id: 'passo-celebre', label: 'A Celebração' }
         ];
 
-        // --- MOTOR DE VIBRAÇÃO GLOBAL ---
         const triggerVibration = (pattern) => {
           if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
             window.navigator.vibrate(pattern);
@@ -151,24 +159,27 @@
           const [stage, setStage] = useState('gate');
           const [cart, setCart] = useState([]);
           const [isCartOpen, setIsCartOpen] = useState(false);
+          const [toast, setToast] = useState(null);
+          
           const [bairro, setBairro] = useState('Centro');
           const [horario, setHorario] = useState(HORARIOS_ENTREGA[0]);
           const [instrucoes, setInstrucoes] = useState('');
-          const [toast, setToast] = useState(null);
+
+          const [builder, setBuilder] = useState({ corte: null, marinada: null, recheio: null });
+          const [activeSection, setActiveSection] = useState('capa');
+          
+          // Estado para o Banner Cinematico
+          const [currentSlide, setCurrentSlide] = useState(0);
 
           const requestRef = useRef();
           const isIdle = useRef(true);
 
+          // Efeito Lanterna Infinito
           const animateSpotlight = (time) => {
             if (isIdle.current) {
               const speed = 0.0012;
-              const centerX = window.innerWidth / 2;
-              const centerY = window.innerHeight / 2;
-              const rx = window.innerWidth * 0.35; 
-              const ry = window.innerHeight * 0.25; 
-              const x = centerX + rx * Math.sin(time * speed);
-              const y = centerY + ry * Math.sin(time * speed * 2);
-
+              const x = (window.innerWidth / 2) + (window.innerWidth * 0.35) * Math.sin(time * speed);
+              const y = (window.innerHeight / 2) + (window.innerHeight * 0.25) * Math.sin(time * speed * 2);
               document.documentElement.style.setProperty('--mouse-x', `${x}px`);
               document.documentElement.style.setProperty('--mouse-y', `${y}px`);
               requestRef.current = requestAnimationFrame(animateSpotlight);
@@ -177,7 +188,6 @@
 
           useEffect(() => {
             requestRef.current = requestAnimationFrame(animateSpotlight);
-
             const handleMove = (e) => {
               if (isIdle.current) {
                 isIdle.current = false;
@@ -188,10 +198,8 @@
               document.documentElement.style.setProperty('--mouse-x', `${x}px`);
               document.documentElement.style.setProperty('--mouse-y', `${y}px`);
             };
-            
             window.addEventListener('mousemove', handleMove, { passive: true });
             window.addEventListener('touchmove', handleMove, { passive: true });
-            
             return () => {
               cancelAnimationFrame(requestRef.current);
               window.removeEventListener('mousemove', handleMove);
@@ -199,19 +207,29 @@
             };
           }, []);
 
+          // Timer do Banner de Família
+          useEffect(() => {
+            if (stage === 'shop') {
+              const interval = setInterval(() => {
+                setCurrentSlide(prev => (prev === 0 ? 1 : 0));
+              }, 5000); // Troca a cada 5 segundos
+              return () => clearInterval(interval);
+            }
+          }, [stage]);
+
+          // Intersection Observer para a Timeline e Revelações
           useEffect(() => {
             if (stage === 'shop') {
               const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                   if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
-                    // Aciona leve vibração visual/haptic na entrada das imagens principais
-                    if (entry.target.classList.contains('glass-panel')) {
-                        // Opcional: triggerVibration(10) - pode ser excessivo rolando rápido, então aplicamos apenas a classe CSS
+                    if (entry.target.id && TIMELINE_STEPS.some(s => s.id === entry.target.id)) {
+                      setActiveSection(entry.target.id);
                     }
                   }
                 });
-              }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+              }, { threshold: 0.2 });
 
               const elements = document.querySelectorAll('.reveal');
               elements.forEach(el => observer.observe(el));
@@ -219,24 +237,68 @@
             }
           }, [stage]);
 
-          useEffect(() => {
-            document.body.style.overflow = isCartOpen ? 'hidden' : 'unset';
-            return () => { document.body.style.overflow = 'unset'; }
-          }, [isCartOpen]);
-
-          const addToCart = (product) => {
-            triggerVibration(30); // Vibração ao adicionar
-            setCart(prev => {
-              const exists = prev.find(i => i.id === product.id);
-              if (exists) return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
-              return [...prev, { ...product, qty: 1 }];
-            });
-            setToast(`${product.name} selecionado`);
+          const showToast = (msg) => {
+            setToast(msg);
             setTimeout(() => setToast(null), 3000);
           };
 
+          const handleSelectCorte = (item) => {
+            triggerVibration(15);
+            setBuilder(prev => ({ ...prev, corte: item, recheio: item.type === 'classico' ? null : prev.recheio }));
+            document.getElementById('passo-marinada').scrollIntoView({ behavior: 'smooth' });
+          };
+
+          const handleSelectMarinada = (item) => {
+            triggerVibration(15);
+            setBuilder(prev => ({ ...prev, marinada: item }));
+            if (builder.corte?.type === 'classico') {
+              document.getElementById('passo-finalizar').scrollIntoView({ behavior: 'smooth' });
+            } else {
+              document.getElementById('passo-recheio').scrollIntoView({ behavior: 'smooth' });
+            }
+          };
+
+          const handleSelectRecheio = (item) => {
+            triggerVibration(15);
+            setBuilder(prev => ({ ...prev, recheio: item }));
+            document.getElementById('passo-finalizar').scrollIntoView({ behavior: 'smooth' });
+          };
+
+          const addCustomChickenToCart = () => {
+            if (!builder.corte) { triggerVibration([40, 40]); return showToast("Selecione a base do assado."); }
+            if (!builder.marinada) { triggerVibration([40, 40]); return showToast("Escolha uma infusão."); }
+            if (builder.corte.type === 'recheado' && !builder.recheio) { triggerVibration([40, 40]); return showToast("Defina o recheio artesanal."); }
+
+            triggerVibration(30);
+            let desc = `Infusão: ${builder.marinada.name}`;
+            if (builder.corte.type === 'recheado') desc += ` | Recheio: ${builder.recheio.name}`;
+
+            const customItem = {
+              id: `${builder.corte.id}-${builder.marinada.id}-${builder.recheio?.id || 'none'}-${Date.now()}`,
+              name: builder.corte.name,
+              desc: desc,
+              price: builder.corte.price,
+              img: builder.corte.img
+            };
+
+            setCart(prev => [...prev, { ...customItem, qty: 1 }]);
+            setBuilder({ corte: null, marinada: null, recheio: null }); 
+            showToast(`${customItem.name} adicionado.`);
+            document.getElementById('passo-complementos').scrollIntoView({ behavior: 'smooth' });
+          };
+
+          const addExtraToCart = (item) => {
+            triggerVibration(20);
+            setCart(prev => {
+              const exists = prev.find(i => i.id === item.id);
+              if (exists) return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i);
+              return [...prev, { ...item, qty: 1 }];
+            });
+            showToast(`${item.name} selecionado`);
+          };
+
           const removeFromCart = (id) => {
-            triggerVibration([20, 30, 20]); // Vibração de exclusão
+            triggerVibration([20, 20]);
             setCart(prev => prev.filter(item => item.id !== id));
           };
 
@@ -244,38 +306,22 @@
           const freightValue = cart.length > 0 ? BAIRROS_FRETE[bairro] : 0;
           const total = subtotal + freightValue;
 
+          // --- GATE ---
           if (stage === 'gate') {
             return (
               <div className="fixed inset-0 flex flex-col items-center justify-center z-[9999] overflow-hidden" style={{ backgroundColor: '#050505' }}>
-                <div style={{ 
-                  position: 'absolute', inset: 0, zIndex: 5, pointerEvents: 'none', overflow: 'hidden',
-                  background: 'radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), rgba(212, 175, 55, 0.18) 0%, transparent 80%)',
-                  WebkitMaskImage: 'radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), black 10%, rgba(0,0,0,0.2) 60%, transparent 100%)'
-                }}>
-                  <div style={{
-                    position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%',
-                    backgroundSize: 'clamp(80px, 12vw, 150px)', backgroundRepeat: 'repeat', transform: 'rotate(-15deg)',
-                    opacity: 0.35, filter: 'grayscale(1) brightness(1.3) contrast(1.2)', mixBlendMode: 'screen',
-                    backgroundImage: `url(${LOGO_URL})`
-                  }}></div>
+                <div style={{ position: 'absolute', inset: 0, zIndex: 5, pointerEvents: 'none', overflow: 'hidden', background: 'radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), rgba(212, 175, 55, 0.18) 0%, transparent 80%)', WebkitMaskImage: 'radial-gradient(circle 400px at var(--mouse-x, 50vw) var(--mouse-y, 50vh), black 10%, rgba(0,0,0,0.2) 60%, transparent 100%)' }}>
+                  <div style={{ position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%', backgroundSize: 'clamp(80px, 12vw, 150px)', backgroundRepeat: 'repeat', transform: 'rotate(-15deg)', opacity: 0.35, filter: 'grayscale(1) brightness(1.3) contrast(1.2)', mixBlendMode: 'screen', backgroundImage: `url(${LOGO_URL})` }}></div>
                 </div>
-                
                 <div className="relative z-20 text-center flex flex-col items-center px-6 pointer-events-none">
                   <div className="mb-16 pointer-events-auto" style={{ animation: 'fadeInUpFixed 1.5s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     <div className="absolute inset-0 bg-[#D4AF37] blur-[140px] opacity-15"></div>
                     <img src={LOGO_URL} alt="DORÉ" className="h-40 md:h-64 relative z-10 drop-shadow-[0_0_20px_rgba(212,175,55,0.4)]" />
                   </div>
-                  
                   <div className="flex flex-col items-center gap-6 pointer-events-auto" style={{ animation: 'fadeInUpFixed 1.5s cubic-bezier(0.16, 1, 0.3, 1) both', animationDelay: '0.5s' }}>
                     <div className="w-[1px] h-20 bg-gradient-to-b from-transparent via-[#D4AF37] to-transparent opacity-50"></div>
-                    <button 
-                      onClick={() => {
-                        triggerVibration([60, 40, 60]); // Porta de entrada
-                        setStage('shop');
-                      }}
-                      className="group relative px-16 py-6 border border-[#D4AF37]/40 bg-black/40 backdrop-blur-md text-[#D4AF37] text-[11px] tracking-[0.8em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black hover:scale-105"
-                    >
-                      <span className="relative z-10 font-bold drop-shadow-md">Toque para Iniciar</span>
+                    <button onClick={() => { triggerVibration([40, 30, 40]); setStage('shop'); }} className="group relative px-12 py-5 border border-[#D4AF37]/30 bg-black/40 backdrop-blur-md text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black">
+                      <span className="relative z-10">Conhecer</span>
                       <div className="absolute inset-0 bg-[#D4AF37] translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
                     </button>
                   </div>
@@ -285,228 +331,315 @@
             );
           }
 
+          // --- BOUTIQUE ---
           return (
             <div className="min-h-screen text-[#F4F1EA] font-sans selection:bg-[#D4AF37] selection:text-black">
               <div className="fixed inset-0 opacity-40 pointer-events-none noise-bg mix-blend-soft-light z-0"></div>
 
+              {/* TIMELINE LATERAL */}
+              <div className="fixed left-8 top-1/2 -translate-y-1/2 z-30 hidden xl:flex flex-col gap-8">
+                {TIMELINE_STEPS.map(step => (
+                  <div key={step.id} className="flex items-center gap-4 cursor-pointer group" onClick={() => document.getElementById(step.id).scrollIntoView({behavior: 'smooth'})}>
+                    <div className={`transition-all duration-500 rounded-full ${activeSection === step.id ? 'w-[3px] h-8 bg-[#D4AF37] shadow-[0_0_10px_#D4AF37]' : 'w-[2px] h-4 bg-white/20 group-hover:bg-white/50'}`}></div>
+                    <span className={`text-[9px] uppercase tracking-[0.3em] transition-all duration-500 ${activeSection === step.id ? 'text-[#D4AF37] font-bold translate-x-2' : 'text-white/30 group-hover:text-white/60'}`}>
+                      {step.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* TOAST NOTIFICATION */}
               <div className={`fixed top-28 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 transform ${toast ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none'}`}>
-                <div className="bg-black/80 backdrop-blur-md border border-[#D4AF37]/40 text-[#D4AF37] px-6 py-3 rounded-full text-[10px] tracking-widest uppercase flex items-center gap-3 shadow-[0_10px_25px_rgba(0,0,0,0.5)]">
+                <div className="bg-[#050505] border border-white/10 text-[#F4F1EA] px-8 py-4 rounded-full text-[10px] tracking-widest uppercase flex items-center gap-4 shadow-2xl">
                   <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse"></div>
-                  {toast}
+                  <span>{toast}</span>
                 </div>
               </div>
 
-              <nav className="fixed top-0 w-full z-40 bg-black/60 backdrop-blur-2xl border-b border-white/5 shadow-2xl">
-                <div className="max-w-6xl mx-auto px-6 h-24 flex justify-between items-center">
+              {/* HEADER */}
+              <nav className="fixed top-0 w-full z-40 bg-[#050505]/80 backdrop-blur-md border-b border-white/5">
+                <div className="max-w-6xl mx-auto px-6 h-20 flex justify-between items-center xl:pl-48">
                   <div className="flex items-center gap-4">
-                    <img src={LOGO_URL} alt="DORÉ" className="h-10 md:h-12 drop-shadow-lg" />
-                    <div className="flex flex-col border-l border-white/10 pl-4">
-                      <span className="text-[10px] tracking-[0.3em] uppercase text-[#D4AF37] font-semibold leading-tight text-shadow-glow">Boutique</span>
-                      <span className="text-[8px] tracking-[0.4em] uppercase opacity-40">de Assados</span>
-                    </div>
+                    <img src={LOGO_URL} alt="DORÉ" className="h-8 opacity-90" />
                   </div>
-                  <button 
-                    onClick={() => {
-                      triggerVibration(20);
-                      setIsCartOpen(true);
-                    }} 
-                    className="flex items-center gap-6 group"
-                  >
+                  <button onClick={() => { triggerVibration(10); setIsCartOpen(true); }} className="flex items-center gap-4 group">
                     <div className="text-right hidden sm:block">
-                      <p className="text-[9px] tracking-[0.3em] uppercase opacity-30 group-hover:opacity-100 transition-opacity">Sua Reserva</p>
-                      <p className="text-sm font-mono text-[#D4AF37]">R$ {total.toFixed(2)}</p>
+                      <p className="text-[8px] tracking-[0.2em] uppercase opacity-40 group-hover:opacity-100 transition-opacity">Sua Seleção</p>
+                      <p className="text-xs font-mono text-[#D4AF37]">R$ {total.toFixed(2)}</p>
                     </div>
-                    <div className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#D4AF37] group-hover:bg-[#D4AF37]/5 transition-all relative">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
-                      {cart.length > 0 && <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#D4AF37] rounded-full shadow-[0_0_10px_#D4AF37] animate-pulse"></span>}
+                    <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:border-[#D4AF37] transition-all relative">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
+                      {cart.length > 0 && <span className="absolute top-0 right-0 w-2 h-2 bg-[#D4AF37] rounded-full"></span>}
                     </div>
                   </button>
                 </div>
               </nav>
 
-              <main className="pt-40 pb-32 px-6 max-w-6xl mx-auto relative z-10">
-                <header className="mb-32 reveal">
+              {/* MAIN CONTENT */}
+              <main className="pt-32 pb-10 relative z-10">
+                
+                {/* 00. CAPA (HERO) */}
+                <div className="max-w-5xl mx-auto px-6 xl:pl-32 mb-32 reveal" id="capa">
                   <div className="grid lg:grid-cols-2 gap-12 items-center">
                     <div className="text-center lg:text-left">
                       <span className="text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase mb-6 block font-light">A Arte do Bem Viver</span>
-                      <h2 className="text-5xl md:text-7xl lg:text-8xl font-serif leading-tight mb-8 tracking-tight text-white drop-shadow-2xl">
+                      <h2 className="text-5xl md:text-7xl lg:text-8xl font-serif leading-tight mb-6 tracking-tight text-white drop-shadow-2xl">
                         Crosta de Ouro.<br/>
                         <span className="italic text-white/30 font-light">Suculência Preservada.</span>
                       </h2>
-                      <p className="text-white/40 font-light max-w-xl mx-auto lg:mx-0 leading-relaxed text-lg italic mb-10">
-                        "A alta rotisserie entregue com exclusividade. Vinte e quatro horas de infusão para o momento que você merece."
+                      <p className="text-white/50 font-light max-w-md mx-auto lg:mx-0 leading-relaxed text-md mb-10">
+                        Cada assado é finalizado no momento da sua escolha. Selecione a base, a infusão e acompanhe a tradição até a sua mesa.
                       </p>
                       <button 
-                        onClick={() => {
-                          triggerVibration(20);
-                          document.getElementById('assados').scrollIntoView({ behavior: 'smooth' });
-                        }}
+                        onClick={() => { triggerVibration(10); document.getElementById('passo-corte').scrollIntoView({ behavior: 'smooth' }); }}
                         className="px-10 py-5 border border-[#D4AF37]/30 bg-[#D4AF37]/5 rounded-full text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-500 font-bold text-[#D4AF37] backdrop-blur-md shadow-[0_0_15px_rgba(212,175,55,0.2)] hover:shadow-[0_0_25px_rgba(212,175,55,0.5)]"
                       >
-                        Explorar Menu
+                        Iniciar Montagem
                       </button>
                     </div>
-                    <div className="relative group">
-                      <div className="absolute inset-0 bg-[#D4AF37] blur-[120px] opacity-20 group-hover:opacity-30 transition-opacity duration-1000 rounded-full"></div>
-                      <img src={SENSORIAL_IMG} alt="DORÉ Sensorial" className="relative z-10 w-full h-auto object-contain scale-110 drop-shadow-[0_30px_60px_rgba(0,0,0,0.8)] animate-[float_6s_ease-in-out_infinite]" />
+                    <div className="relative group flex justify-center">
+                      <div className="absolute inset-0 bg-[#D4AF37] blur-[100px] opacity-20 rounded-full"></div>
+                      <img src={SENSORIAL_IMG} alt="DORÉ" className="relative z-10 w-[80%] max-w-[450px] h-auto object-contain drop-shadow-[0_30px_60px_rgba(0,0,0,0.8)] animate-[float_6s_ease-in-out_infinite]" />
                     </div>
                   </div>
-                </header>
+                </div>
 
-                <section id="assados" className="mb-40 reveal">
-                  <div className="flex items-center gap-6 mb-16">
-                    <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">01</span>
-                    <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">O Assado Principal</h3>
+                {/* 01. O CORTE */}
+                <section id="passo-corte" className="max-w-5xl mx-auto px-6 xl:pl-32 mb-32 reveal scroll-mt-24">
+                  <div className="flex items-center gap-4 mb-10">
+                    <span className="text-[#D4AF37] font-serif text-3xl italic opacity-30">01</span>
+                    <h3 className="text-sm uppercase tracking-[0.3em] font-light text-white/70">A Base</h3>
                   </div>
-                  <div className="grid md:grid-cols-2 gap-12">
-                    {PRODUCTS.frangos.map(item => (
-                      <div key={item.id} className="group glass-panel p-3 overflow-hidden rounded-[3rem] reveal">
-                        <div className="aspect-[16/10] rounded-[2.5rem] overflow-hidden mb-8 relative bg-black">
-                          {/* CORREÇÃO: Brilho e Saturação elevados para dar aparência suculenta. O mix-blend foi removido para não apagar as cores. */}
-                          <img src={item.img} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-all duration-1000 saturate-150 brightness-110 group-hover:brightness-125" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80"></div>
+                  <div className="grid md:grid-cols-2 gap-8">
+                    {BUILDER_DATA.cortes.map(item => (
+                      <div key={item.id} onClick={() => handleSelectCorte(item)} className={`group glass-panel p-2 overflow-hidden rounded-3xl ${builder.corte?.id === item.id ? 'selected border-[#D4AF37]' : ''}`}>
+                        <div className="aspect-[16/10] rounded-[1.5rem] overflow-hidden mb-6 relative bg-black">
+                          <img src={item.img} loading="lazy" className={`w-full h-full object-cover transition-all duration-1000 ${builder.corte?.id === item.id ? 'brightness-110 scale-105' : 'brightness-75 group-hover:brightness-100 group-hover:scale-105'}`} />
+                          {builder.corte?.id === item.id && (
+                            <div className="absolute top-4 right-4 bg-[#D4AF37] text-black text-[8px] uppercase tracking-widest px-3 py-1.5 rounded-full font-bold">Selecionado</div>
+                          )}
                         </div>
-                        <div className="px-8 pb-10 text-center md:text-left">
-                          <div className="flex flex-col md:flex-row justify-between items-baseline mb-6">
-                            <h4 className="text-4xl font-serif text-[#D4AF37] mb-2 md:mb-0">{item.name}</h4>
-                            <span className="font-mono text-xl opacity-60">R$ {item.price}</span>
+                        <div className="px-6 pb-6 text-center md:text-left">
+                          <div className="flex flex-col md:flex-row justify-between items-baseline mb-2">
+                            <h4 className="text-2xl font-serif text-white group-hover:text-[#D4AF37] transition-colors">{item.name}</h4>
+                            <span className="font-mono text-sm opacity-60">R$ {item.price}</span>
                           </div>
-                          <p className="text-sm text-white/50 font-light mb-10 h-16 leading-relaxed max-w-sm">{item.desc}</p>
-                          <button onClick={() => addToCart(item)} className="w-full py-6 border border-[#D4AF37]/30 bg-white/5 rounded-2xl text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-700 font-bold backdrop-blur-md hover:shadow-[0_0_20px_rgba(212,175,55,0.4)]">
-                            Selecionar Unidade
-                          </button>
+                          <p className="text-xs text-white/40 font-light leading-relaxed">{item.desc}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </section>
 
-                <section className="mb-40 reveal">
-                  <div className="glass-panel overflow-hidden rounded-[3rem] p-12 md:p-24 text-center relative">
-                    <div className="absolute inset-0 opacity-5 bg-repeat mix-blend-overlay" style={{ backgroundImage: `url(${PATTERN_URL})`, backgroundSize: '100px' }}></div>
-                    <div className="relative z-10">
-                      <span className="text-[#D4AF37] text-[10px] tracking-[0.5em] uppercase mb-8 block">A Experiência DORÉ</span>
-                      <h3 className="text-4xl md:text-5xl font-serif mb-8 leading-tight text-white">O Ritual do <span className="italic text-[#D4AF37]">Desejo.</span></h3>
-                      <p className="text-white/40 font-light leading-relaxed mb-12 text-lg max-w-3xl mx-auto">
-                        Não é apenas uma entrega, é um protocolo de luxo. Receba o seu assado em embalagem térmica boutique, projetada para manter a crosta sonora e os sucos exatamente como saíram do fogo.
+                {/* CONTRASTE: SEÇÃO FULL-BLEED DARK */}
+                <div className="w-full bg-[#050505] py-24 mb-32 border-y border-white/5 reveal">
+                  <div className="max-w-5xl mx-auto px-6 xl:pl-32 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-12">
+                    <div className="max-w-lg">
+                      <span className="text-[#D4AF37] text-[9px] tracking-[0.4em] uppercase mb-4 block">Nossa Essência</span>
+                      <h3 className="text-3xl md:text-4xl font-serif leading-tight text-white mb-6">O Tempo como <br/><span className="italic text-[#D4AF37]">Ingrediente.</span></h3>
+                      <p className="text-white/40 font-light leading-relaxed text-sm">
+                        Cada peça é tratada com respeito. O preparo lento garante a integridade da crosta, enquanto nossa embalagem desenvolvida sob medida preserva a temperatura até sua mesa.
                       </p>
-                      <div className="flex flex-col md:flex-row justify-center items-center gap-10 md:gap-20">
-                        <div>
-                          <span className="block text-[#D4AF37] font-mono text-4xl mb-2 drop-shadow-md">24h</span>
-                          <span className="text-[10px] uppercase tracking-widest opacity-40">Infusão</span>
-                        </div>
-                        <div className="hidden md:block w-[1px] h-16 bg-white/10"></div>
-                        <div className="md:hidden h-[1px] w-16 bg-white/10"></div>
-                        <div>
-                          <span className="block text-[#D4AF37] font-mono text-4xl mb-2 drop-shadow-md">85°C</span>
-                          <span className="text-[10px] uppercase tracking-widest opacity-40">Ponto Perfeito</span>
+                    </div>
+                    <div className="flex gap-10 opacity-80">
+                      <div className="text-center">
+                        <span className="block text-[#D4AF37] font-mono text-3xl mb-1">24h</span>
+                        <span className="text-[8px] uppercase tracking-widest text-white/50">Infusão</span>
+                      </div>
+                      <div className="w-[1px] h-12 bg-white/10"></div>
+                      <div className="text-center">
+                        <span className="block text-[#D4AF37] font-mono text-3xl mb-1">85°C</span>
+                        <span className="text-[8px] uppercase tracking-widest text-white/50">Interno</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 02. A MARINADA */}
+                <section id="passo-marinada" className={`max-w-5xl mx-auto px-6 xl:pl-32 mb-24 reveal scroll-mt-24 transition-opacity duration-700 ${!builder.corte ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
+                  <div className="flex items-center gap-4 mb-8">
+                    <span className="text-[#D4AF37] font-serif text-3xl italic opacity-30">02</span>
+                    <h3 className="text-sm uppercase tracking-[0.3em] font-light text-white/70">A Infusão</h3>
+                  </div>
+                  <div className="flex flex-col">
+                    {BUILDER_DATA.marinadas.map(item => (
+                      <div key={item.id} onClick={() => handleSelectMarinada(item)} className="border-b border-white/5 py-6 flex items-center justify-between cursor-pointer group hover:bg-white/5 px-4 rounded-lg transition-colors">
+                        <div className="flex items-center gap-6">
+                          <div className={`w-3 h-3 rounded-full border ${builder.marinada?.id === item.id ? 'border-[#D4AF37] bg-[#D4AF37]' : 'border-white/20 group-hover:border-white/50'} transition-colors`}></div>
+                          <div>
+                            <h4 className={`text-lg font-serif transition-colors ${builder.marinada?.id === item.id ? 'text-[#D4AF37]' : 'text-[#F4F1EA] group-hover:text-white'}`}>{item.name}</h4>
+                            <p className="text-[10px] text-white/30 font-light mt-1 hidden md:block">{item.desc}</p>
+                          </div>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* 03. O RECHEIO */}
+                <section id="passo-recheio" className={`max-w-5xl mx-auto px-6 xl:pl-32 mb-24 reveal scroll-mt-24 transition-all duration-700 ${(!builder.marinada || builder.corte?.type === 'classico') ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
+                  <div className="flex items-center gap-4 mb-8 relative">
+                    <span className="text-[#D4AF37] font-serif text-3xl italic opacity-30">03</span>
+                    <h3 className="text-sm uppercase tracking-[0.3em] font-light text-white/70">O Recheio</h3>
+                    {builder.corte?.type === 'classico' && (
+                      <span className="absolute right-0 text-[9px] text-[#D4AF37] uppercase tracking-widest bg-[#D4AF37]/10 px-3 py-1 rounded">Dispensável</span>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    {BUILDER_DATA.recheios.map(item => (
+                      <div key={item.id} onClick={() => handleSelectRecheio(item)} className="border-b border-white/5 py-6 flex items-center justify-between cursor-pointer group hover:bg-white/5 px-4 rounded-lg transition-colors">
+                        <div className="flex items-center gap-6">
+                          <div className={`w-3 h-3 rounded-full border ${builder.recheio?.id === item.id ? 'border-[#D4AF37] bg-[#D4AF37]' : 'border-white/20 group-hover:border-white/50'} transition-colors`}></div>
+                          <div>
+                            <h4 className={`text-lg font-serif transition-colors ${builder.recheio?.id === item.id ? 'text-[#D4AF37]' : 'text-[#F4F1EA] group-hover:text-white'}`}>{item.name}</h4>
+                            <p className="text-[10px] text-white/30 font-light mt-1 hidden md:block">{item.desc}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* FINALIZAR CONSTRUÇÃO */}
+                <div id="passo-finalizar" className={`max-w-5xl mx-auto px-6 xl:pl-32 mb-32 reveal transition-all duration-1000 ${(!builder.corte || !builder.marinada || (builder.corte.type === 'recheado' && !builder.recheio)) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                   <button 
+                      onClick={addCustomChickenToCart}
+                      className="w-full md:w-auto px-12 py-5 border border-[#D4AF37]/30 bg-[#D4AF37]/10 rounded-full text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-500 font-bold text-[#D4AF37]"
+                    >
+                      Adicionar Preparo (R$ {builder.corte?.price})
+                    </button>
+                </div>
+
+                {/* 04. EXTRAS */}
+                <section id="passo-complementos" className="max-w-5xl mx-auto px-6 xl:pl-32 mb-40 reveal scroll-mt-24 border-t border-white/10 pt-20">
+                  <div className="mb-12">
+                    <span className="text-[#D4AF37] text-[9px] tracking-[0.4em] uppercase block mb-2 font-light">Para Acompanhar</span>
+                  </div>
+                  
+                  <div className="grid lg:grid-cols-2 gap-16">
+                    <div>
+                      <h4 className="font-serif text-xl text-white/70 mb-6 border-b border-white/5 pb-4">Guarnições</h4>
+                      {EXTRAS.farofas.map(item => (
+                        <div key={item.id} className="py-4 flex justify-between items-center group border-b border-white/5">
+                          <div className="max-w-[70%]">
+                            <h5 className="font-serif text-white group-hover:text-[#D4AF37] transition-colors cursor-default">{item.name}</h5>
+                            <p className="text-[9px] text-white/30 uppercase tracking-widest mt-1">{item.desc}</p>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className="font-mono text-white/50 text-xs">R$ {item.price}</span>
+                            <button onClick={() => addExtraToCart(item)} className="text-[#D4AF37] hover:text-white transition-colors p-2">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 5v14M5 12h14"/></svg>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div>
+                      <h4 className="font-serif text-xl text-white/70 mb-6 border-b border-white/5 pb-4">Assinaturas</h4>
+                      {EXTRAS.molhos.map(item => (
+                        <div key={item.id} className="py-4 flex justify-between items-center group border-b border-white/5">
+                          <div className="max-w-[70%]">
+                            <h5 className="font-serif text-white group-hover:text-[#D4AF37] transition-colors cursor-default">{item.name}</h5>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className="font-mono text-white/50 text-xs">R$ {item.price}</span>
+                            <button onClick={() => addExtraToCart(item)} className="text-[#D4AF37] hover:text-white transition-colors p-2">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 5v14M5 12h14"/></svg>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </section>
 
-                <section className="mb-40 reveal">
-                  <div className="flex items-center gap-6 mb-16">
-                    <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">02</span>
-                    <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">Complementos Premium</h3>
+                {/* BANNER CINEMÁTICO: A CELEBRAÇÃO (NOVO) */}
+                <section id="passo-celebre" className="max-w-6xl mx-auto mb-20 reveal scroll-mt-24">
+                  <div className="text-center mb-12">
+                    <span className="text-[#D4AF37] text-[9px] tracking-[0.4em] uppercase block mb-3 font-light">O Propósito</span>
+                    <h3 className="text-3xl font-serif text-white">A Arte de Viver Bem</h3>
                   </div>
-                  <div className="grid md:grid-cols-2 gap-10">
-                    {PRODUCTS.farofas.map(item => (
-                      <div key={item.id} className="glass-panel p-12 flex flex-col md:flex-row justify-between items-center group rounded-[2.5rem]">
-                        <div className="max-w-[80%] text-center md:text-left mb-6 md:mb-0">
-                          <h4 className="text-2xl font-serif mb-3 text-[#F4F1EA]">{item.name}</h4>
-                          <p className="text-xs text-white/40 leading-relaxed font-light">{item.desc}</p>
-                        </div>
-                        <div className="text-center md:text-right">
-                          <p className="font-mono text-[#D4AF37] text-lg mb-6">R$ {item.price}</p>
-                          <button onClick={() => addToCart(item)} className="w-14 h-14 rounded-full border border-white/10 bg-white/5 flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-all duration-500 hover:scale-110 backdrop-blur-md">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 5v14M5 12h14"/></svg>
-                          </button>
-                        </div>
-                      </div>
+                  
+                  <div className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-[2.5rem] overflow-hidden glass-panel group cursor-default">
+                    {BANNER_IMAGES.map((img, index) => (
+                      <img
+                        key={index}
+                        src={img}
+                        loading="lazy"
+                        alt="A Celebração"
+                        className={`absolute inset-0 w-full h-full object-cover transition-all duration-[2000ms] ease-in-out ${
+                          index === currentSlide ? 'opacity-50 scale-100' : 'opacity-0 scale-105'
+                        }`}
+                      />
                     ))}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent opacity-90"></div>
                   </div>
                 </section>
 
-                <section className="mb-20 reveal">
-                  <div className="flex items-center gap-6 mb-16">
-                    <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">03</span>
-                    <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">Alquimia de Sabores</h3>
-                  </div>
-                  <div className="grid md:grid-cols-3 gap-8">
-                    {PRODUCTS.molhos.map(item => (
-                      <div key={item.id} className="glass-panel p-10 flex flex-col justify-between rounded-[2rem] text-center md:text-left">
-                        <div>
-                          <h4 className="text-xl font-serif mb-4 text-[#F4F1EA]">{item.name}</h4>
-                          <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] mb-10 leading-relaxed h-8">{item.desc}</p>
-                        </div>
-                        <div className="flex justify-between items-center pt-6 border-t border-white/5">
-                          <span className="font-mono text-[#D4AF37] text-sm">R$ {item.price}</span>
-                          <button onClick={() => addToCart(item)} className="text-[10px] uppercase tracking-[0.3em] border-b border-white/10 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all pb-1 font-bold">
-                            Adicionar
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
               </main>
 
-              {/* CARRINHO DE CONCIERGE */}
-              <div className={`fixed inset-0 z-50 transition-all duration-700 ${isCartOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
-                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => { triggerVibration(10); setIsCartOpen(false); }}></div>
-                <div className={`absolute top-0 right-0 h-full w-full max-w-md bg-[#0a0a0a]/95 backdrop-blur-[40px] border-l border-white/10 shadow-[-20px_0_50px_rgba(0,0,0,0.8)] flex flex-col transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-                  <div className="p-8 border-b border-white/10 flex justify-between items-center bg-black/50">
-                    <h4 className="text-2xl font-serif tracking-[0.1em] text-[#D4AF37]">Concierge de Reserva</h4>
-                    <button onClick={() => { triggerVibration(10); setIsCartOpen(false); }} className="opacity-40 hover:opacity-100 hover:text-[#D4AF37] transition-colors p-2">
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              {/* FOOTER MINIMALISTA */}
+              <footer className="border-t border-white/5 py-12 text-center relative z-10 bg-[#050505]">
+                <img src={LOGO_URL} alt="DORÉ" className="h-8 mx-auto mb-6 opacity-40" />
+                <p className="text-[9px] uppercase tracking-[0.4em] text-white/30 font-light mb-2">Chapecó • SC</p>
+                <p className="text-[7px] uppercase tracking-[0.2em] text-white/20 font-mono">© 2026 Boutique DORÉ. Todos os direitos reservados.</p>
+              </footer>
+
+              {/* SELEÇÃO LADO DIREITO (Carrinho Minimalista) */}
+              <div className={`fixed inset-0 z-50 transition-all duration-500 ${isCartOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { triggerVibration(10); setIsCartOpen(false); }}></div>
+                <div className={`absolute top-0 right-0 h-full w-full max-w-md bg-[#050505] border-l border-white/5 shadow-[-20px_0_50px_rgba(0,0,0,0.9)] flex flex-col transition-transform duration-500 ease-out transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                  
+                  <div className="p-8 border-b border-white/5 flex justify-between items-center">
+                    <h4 className="text-lg font-serif tracking-widest text-[#F4F1EA]">Sua Seleção</h4>
+                    <button onClick={() => { triggerVibration(10); setIsCartOpen(false); }} className="opacity-40 hover:opacity-100 transition-opacity p-2">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-8 space-y-10">
                     {cart.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center opacity-30 text-center">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mb-4 text-[#D4AF37]"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
-                        <p className="text-[10px] uppercase tracking-[0.5em] font-light text-[#D4AF37]">Sua lista está vazia</p>
+                        <p className="text-[9px] uppercase tracking-[0.4em] font-light text-white">Nenhum item selecionado</p>
                       </div>
                     ) : (
                       <div className="space-y-8">
-                        <div className="space-y-6 border-b border-white/10 pb-8">
+                        <div className="space-y-4 border-b border-white/5 pb-8">
                           {cart.map(item => (
-                            <div key={item.id} className="flex justify-between items-center group animate-fade-in">
+                            <div key={item.id} className="flex justify-between items-start py-2">
                               <div className="max-w-[70%]">
-                                <p className="font-serif text-lg mb-1 text-[#F4F1EA] group-hover:text-[#D4AF37] transition-colors">{item.name}</p>
-                                <p className="text-[10px] font-mono opacity-50 tracking-[0.1em] uppercase">{item.qty} x R$ {item.price}</p>
+                                <p className="font-serif text-sm text-[#F4F1EA]">{item.name} <span className="text-[9px] font-mono text-white/30 ml-2">x{item.qty}</span></p>
+                                <p className="text-[8px] font-sans opacity-40 uppercase mt-1 leading-relaxed">{item.desc}</p>
                               </div>
-                              <div className="flex items-center gap-4">
-                                <span className="font-mono text-[#D4AF37] text-sm">R$ {item.price * item.qty}</span>
-                                <button onClick={() => removeFromCart(item.id)} className="text-white/30 hover:text-red-500 transition-colors p-2">
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                              <div className="flex flex-col items-end gap-2">
+                                <button onClick={() => removeFromCart(item.id)} className="text-white/20 hover:text-[#D4AF37] transition-colors">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
+                                <span className="font-mono text-white/60 text-xs mt-1">R$ {item.price * item.qty}</span>
                               </div>
                             </div>
                           ))}
                         </div>
 
-                        <div className="space-y-6">
-                          <h5 className="text-[10px] uppercase tracking-[0.4em] text-[#D4AF37] font-bold">Detalhes da Entrega</h5>
-                          <div className="space-y-4">
-                            <div className="flex flex-col gap-2">
-                              <label className="text-[9px] uppercase tracking-widest text-white/50 pl-2">Janela de Entrega</label>
-                              <select value={horario} onChange={(e) => setHorario(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors appearance-none shadow-inner">
-                                {HORARIOS_ENTREGA.map(h => <option key={h} value={h} className="bg-neutral-900">{h}</option>)}
+                        <div className="space-y-5">
+                          <h5 className="text-[9px] uppercase tracking-[0.3em] text-white/50 font-light">Detalhes da Entrega</h5>
+                          <div className="space-y-3">
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[8px] uppercase tracking-widest text-white/30">Horário</label>
+                              <select value={horario} onChange={(e) => setHorario(e.target.value)} className="w-full bg-[#0A0A0A] border border-white/5 rounded-lg px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors">
+                                {HORARIOS_ENTREGA.map(h => <option key={h} value={h}>{h}</option>)}
                               </select>
                             </div>
-                            <div className="flex flex-col gap-2">
-                              <label className="text-[9px] uppercase tracking-widest text-white/50 pl-2">Bairro (Chapecó)</label>
-                              <select value={bairro} onChange={(e) => setBairro(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors appearance-none shadow-inner">
-                                {Object.keys(BAIRROS_FRETE).map(b => <option key={b} value={b} className="bg-neutral-900">{b}</option>)}
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[8px] uppercase tracking-widest text-white/30">Bairro</label>
+                              <select value={bairro} onChange={(e) => setBairro(e.target.value)} className="w-full bg-[#0A0A0A] border border-white/5 rounded-lg px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors">
+                                {Object.keys(BAIRROS_FRETE).map(b => <option key={b} value={b}>{b}</option>)}
                               </select>
                             </div>
-                            <div className="flex flex-col gap-2">
-                              <label className="text-[9px] uppercase tracking-widest text-white/50 pl-2">Instruções para o Motoboy</label>
-                              <input type="text" value={instrucoes} onChange={(e) => setInstrucoes(e.target.value)} placeholder="Ex: Condomínio, Bloco B..." className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors placeholder:text-white/20 shadow-inner" />
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[8px] uppercase tracking-widest text-white/30">Observações</label>
+                              <input type="text" value={instrucoes} onChange={(e) => setInstrucoes(e.target.value)} placeholder="Condomínio, bloco..." className="w-full bg-[#0A0A0A] border border-white/5 rounded-lg px-4 py-3 text-xs font-sans text-white focus:border-[#D4AF37] transition-colors placeholder:text-white/20" />
                             </div>
                           </div>
                         </div>
@@ -515,32 +648,32 @@
                   </div>
 
                   {cart.length > 0 && (
-                    <div className="p-8 border-t border-white/10 bg-black/60 backdrop-blur-xl space-y-6 shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
-                      <div className="space-y-3">
-                        <div className="flex justify-between text-[10px] text-white/50 tracking-[0.2em] uppercase">
+                    <div className="p-8 border-t border-white/5 bg-[#050505] space-y-5">
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-[9px] text-white/40 tracking-[0.1em] uppercase">
                           <span>Subtotal</span>
-                          <span className="font-mono text-white">R$ {subtotal.toFixed(2)}</span>
+                          <span className="font-mono text-white/70">R$ {subtotal.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between text-[10px] text-white/50 tracking-[0.2em] uppercase items-center">
-                          <span className="flex items-center gap-2">Frete Inteligente <div className="w-1 h-1 bg-[#D4AF37] rounded-full animate-ping"></div></span>
-                          <span className="font-mono text-white">R$ {freightValue.toFixed(2)}</span>
+                        <div className="flex justify-between text-[9px] text-white/40 tracking-[0.1em] uppercase items-center">
+                          <span>Frete</span>
+                          <span className="font-mono text-white/70">R$ {freightValue.toFixed(2)}</span>
                         </div>
                       </div>
                       
-                      <div className="pt-6 flex justify-between items-baseline border-t border-white/10">
-                        <span className="text-3xl font-serif text-[#D4AF37]">Total</span>
-                        <span className="text-2xl font-mono text-white">R$ {total.toFixed(2)}</span>
+                      <div className="pt-4 flex justify-between items-baseline border-t border-white/5">
+                        <span className="text-xl font-serif text-white">Total</span>
+                        <span className="text-lg font-mono text-[#D4AF37]">R$ {total.toFixed(2)}</span>
                       </div>
                       
                       <button onClick={() => {
-                          triggerVibration([50, 30, 50]); // Vibração de Sucesso!
-                          const itemsMsg = cart.map(i => `• ${i.name} (${i.qty}x)`).join('%0A');
-                          const finalMsg = `Olá, Concierge DORÉ! Gostaria de confirmar minha reserva.%0A%0A*📦 Meu Pedido:*%0A${itemsMsg}%0A%0A*⏱ Horário Solicitado:*%0A${horario}%0A%0A*📍 Local da Entrega:*%0ABairro: ${bairro}%0AInstruções: ${instrucoes || 'Nenhuma'}%0A%0A*💳 Total (com frete):* R$ ${total.toFixed(2)}%0A%0A_Aguardando chave Pix e confirmação._`;
+                          triggerVibration([30, 20, 30]);
+                          const itemsMsg = cart.map(i => `• ${i.name} (${i.qty}x)%0A  _${i.desc}_`).join('%0A%0A');
+                          const finalMsg = `Olá, DORÉ! Gostaria de confirmar minha seleção.%0A%0A*📦 Pedido:*%0A${itemsMsg}%0A%0A*⏱ Horário:* ${horario}%0A*📍 Bairro:* ${bairro}%0A*Obs:* ${instrucoes || 'Nenhuma'}%0A%0A*💳 Total:* R$ ${total.toFixed(2)}%0A%0A_Aguardando confirmação._`;
                           window.open(`https://wa.me/5549999999999?text=${finalMsg}`);
                         }}
-                        className="w-full bg-[#D4AF37] text-[#0D0C0A] py-6 rounded-[2rem] font-bold uppercase tracking-[0.3em] text-[10px] hover:bg-[#F4F1EA] transition-all duration-500 mt-4 shadow-[0_10px_30px_rgba(212,175,55,0.2)] hover:shadow-[0_15px_40px_rgba(212,175,55,0.4)]"
+                        className="w-full bg-white text-black py-4 rounded-full font-bold uppercase tracking-[0.2em] text-[9px] hover:bg-[#D4AF37] transition-colors mt-2"
                       >
-                        Confirmar Reserva (WhatsApp)
+                        Enviar Pedido
                       </button>
                     </div>
                   )}
