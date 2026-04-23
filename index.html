@@ -41,6 +41,7 @@
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
         
+        /* Glassmorphism Dinâmico com Brilho Sensorial */
         .glass-panel {
           background: rgba(255, 255, 255, 0.02);
           backdrop-filter: blur(20px);
@@ -50,14 +51,21 @@
           box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
         }
         
-        .glass-panel:hover {
+        /* O "Brilho" que acende ao rolar e no hover */
+        .glass-panel.visible, .glass-panel:hover {
           border-color: rgba(212, 175, 55, 0.3);
           background: rgba(255, 255, 255, 0.04);
           transform: translateY(-8px);
-          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+          box-shadow: 0 20px 50px rgba(212, 175, 55, 0.15), 0 30px 60px rgba(0, 0, 0, 0.6);
         }
 
         .text-shadow-glow { text-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
+
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+          100% { transform: translateY(0px); }
+        }
 
         .reveal { 
           opacity: 0; 
@@ -96,6 +104,7 @@
 
         const LOGO_URL = "https://alisachapeco.com.br/assets/images/image19.png?v=5f40d70b";
         const SENSORIAL_IMG = "https://alisachapeco.com.br/assets/images/image21.png?v=e9c990c3";
+        const PATTERN_URL = "https://alisachapeco.com.br/assets/images/image18.png?v=337fcc30";
 
         const PRODUCTS = {
           frangos: [
@@ -130,6 +139,13 @@
           'Domingo | 11:00 - 11:30', 'Domingo | 11:30 - 12:00',
           'Domingo | 12:00 - 12:30', 'Domingo | 12:30 - 13:00'
         ];
+
+        // --- MOTOR DE VIBRAÇÃO GLOBAL ---
+        const triggerVibration = (pattern) => {
+          if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(pattern);
+          }
+        };
 
         function App() {
           const [stage, setStage] = useState('gate');
@@ -187,7 +203,13 @@
             if (stage === 'shop') {
               const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
-                  if (entry.isIntersecting) entry.target.classList.add('visible');
+                  if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    // Aciona leve vibração visual/haptic na entrada das imagens principais
+                    if (entry.target.classList.contains('glass-panel')) {
+                        // Opcional: triggerVibration(10) - pode ser excessivo rolando rápido, então aplicamos apenas a classe CSS
+                    }
+                  }
                 });
               }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
 
@@ -203,7 +225,7 @@
           }, [isCartOpen]);
 
           const addToCart = (product) => {
-            if (window.navigator.vibrate) window.navigator.vibrate([30]);
+            triggerVibration(30); // Vibração ao adicionar
             setCart(prev => {
               const exists = prev.find(i => i.id === product.id);
               if (exists) return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
@@ -213,7 +235,10 @@
             setTimeout(() => setToast(null), 3000);
           };
 
-          const removeFromCart = (id) => setCart(prev => prev.filter(item => item.id !== id));
+          const removeFromCart = (id) => {
+            triggerVibration([20, 30, 20]); // Vibração de exclusão
+            setCart(prev => prev.filter(item => item.id !== id));
+          };
 
           const subtotal = useMemo(() => cart.reduce((acc, i) => acc + (i.price * i.qty), 0), [cart]);
           const freightValue = cart.length > 0 ? BAIRROS_FRETE[bairro] : 0;
@@ -245,7 +270,7 @@
                     <div className="w-[1px] h-20 bg-gradient-to-b from-transparent via-[#D4AF37] to-transparent opacity-50"></div>
                     <button 
                       onClick={() => {
-                        if (window.navigator.vibrate) window.navigator.vibrate([60, 40, 60]);
+                        triggerVibration([60, 40, 60]); // Porta de entrada
                         setStage('shop');
                       }}
                       className="group relative px-16 py-6 border border-[#D4AF37]/40 bg-black/40 backdrop-blur-md text-[#D4AF37] text-[11px] tracking-[0.8em] uppercase font-light overflow-hidden transition-all hover:bg-[#D4AF37] hover:text-black hover:scale-105"
@@ -280,7 +305,13 @@
                       <span className="text-[8px] tracking-[0.4em] uppercase opacity-40">de Assados</span>
                     </div>
                   </div>
-                  <button onClick={() => setIsCartOpen(true)} className="flex items-center gap-6 group">
+                  <button 
+                    onClick={() => {
+                      triggerVibration(20);
+                      setIsCartOpen(true);
+                    }} 
+                    className="flex items-center gap-6 group"
+                  >
                     <div className="text-right hidden sm:block">
                       <p className="text-[9px] tracking-[0.3em] uppercase opacity-30 group-hover:opacity-100 transition-opacity">Sua Reserva</p>
                       <p className="text-sm font-mono text-[#D4AF37]">R$ {total.toFixed(2)}</p>
@@ -294,36 +325,54 @@
               </nav>
 
               <main className="pt-40 pb-32 px-6 max-w-6xl mx-auto relative z-10">
-                <header className="text-center mb-32 reveal">
-                  <span className="text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase mb-6 block font-light">Chapecó • Produção Artesanal</span>
-                  <h2 className="text-5xl md:text-8xl font-serif leading-tight mb-10 tracking-tight text-white drop-shadow-2xl">
-                    Crosta de Ouro.<br/>
-                    <span className="italic text-white/30 font-light">Suculência Preservada.</span>
-                  </h2>
-                  <p className="text-white/40 font-light max-w-2xl mx-auto leading-relaxed text-lg italic">
-                    "A arte da rotisserie entregue com exclusividade. Vinte e quatro horas de infusão para o momento que você merece."
-                  </p>
+                <header className="mb-32 reveal">
+                  <div className="grid lg:grid-cols-2 gap-12 items-center">
+                    <div className="text-center lg:text-left">
+                      <span className="text-[#D4AF37] text-[10px] tracking-[0.6em] uppercase mb-6 block font-light">A Arte do Bem Viver</span>
+                      <h2 className="text-5xl md:text-7xl lg:text-8xl font-serif leading-tight mb-8 tracking-tight text-white drop-shadow-2xl">
+                        Crosta de Ouro.<br/>
+                        <span className="italic text-white/30 font-light">Suculência Preservada.</span>
+                      </h2>
+                      <p className="text-white/40 font-light max-w-xl mx-auto lg:mx-0 leading-relaxed text-lg italic mb-10">
+                        "A alta rotisserie entregue com exclusividade. Vinte e quatro horas de infusão para o momento que você merece."
+                      </p>
+                      <button 
+                        onClick={() => {
+                          triggerVibration(20);
+                          document.getElementById('assados').scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="px-10 py-5 border border-[#D4AF37]/30 bg-[#D4AF37]/5 rounded-full text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-500 font-bold text-[#D4AF37] backdrop-blur-md shadow-[0_0_15px_rgba(212,175,55,0.2)] hover:shadow-[0_0_25px_rgba(212,175,55,0.5)]"
+                      >
+                        Explorar Menu
+                      </button>
+                    </div>
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-[#D4AF37] blur-[120px] opacity-20 group-hover:opacity-30 transition-opacity duration-1000 rounded-full"></div>
+                      <img src={SENSORIAL_IMG} alt="DORÉ Sensorial" className="relative z-10 w-full h-auto object-contain scale-110 drop-shadow-[0_30px_60px_rgba(0,0,0,0.8)] animate-[float_6s_ease-in-out_infinite]" />
+                    </div>
+                  </div>
                 </header>
 
-                <section className="mb-40 reveal">
+                <section id="assados" className="mb-40 reveal">
                   <div className="flex items-center gap-6 mb-16">
                     <span className="text-[#D4AF37] font-serif text-5xl italic opacity-20">01</span>
                     <h3 className="text-2xl uppercase tracking-[0.4em] border-b border-white/5 pb-4 flex-grow font-light">O Assado Principal</h3>
                   </div>
                   <div className="grid md:grid-cols-2 gap-12">
                     {PRODUCTS.frangos.map(item => (
-                      <div key={item.id} className="group glass-panel p-3 overflow-hidden rounded-[3rem]">
+                      <div key={item.id} className="group glass-panel p-3 overflow-hidden rounded-[3rem] reveal">
                         <div className="aspect-[16/10] rounded-[2.5rem] overflow-hidden mb-8 relative bg-black">
-                          <img src={item.img} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 opacity-80 group-hover:opacity-100 mix-blend-luminosity hover:mix-blend-normal" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-60"></div>
+                          {/* CORREÇÃO: Brilho e Saturação elevados para dar aparência suculenta. O mix-blend foi removido para não apagar as cores. */}
+                          <img src={item.img} alt={item.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-all duration-1000 saturate-150 brightness-110 group-hover:brightness-125" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80"></div>
                         </div>
                         <div className="px-8 pb-10 text-center md:text-left">
                           <div className="flex flex-col md:flex-row justify-between items-baseline mb-6">
                             <h4 className="text-4xl font-serif text-[#D4AF37] mb-2 md:mb-0">{item.name}</h4>
                             <span className="font-mono text-xl opacity-60">R$ {item.price}</span>
                           </div>
-                          <p className="text-sm text-white/40 font-light mb-10 h-16 leading-relaxed max-w-sm">{item.desc}</p>
-                          <button onClick={() => addToCart(item)} className="w-full py-6 border border-[#D4AF37]/30 bg-white/5 rounded-2xl text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-700 font-bold backdrop-blur-md">
+                          <p className="text-sm text-white/50 font-light mb-10 h-16 leading-relaxed max-w-sm">{item.desc}</p>
+                          <button onClick={() => addToCart(item)} className="w-full py-6 border border-[#D4AF37]/30 bg-white/5 rounded-2xl text-[10px] uppercase tracking-[0.4em] hover:bg-[#D4AF37] hover:text-black transition-all duration-700 font-bold backdrop-blur-md hover:shadow-[0_0_20px_rgba(212,175,55,0.4)]">
                             Selecionar Unidade
                           </button>
                         </div>
@@ -333,28 +382,26 @@
                 </section>
 
                 <section className="mb-40 reveal">
-                  <div className="glass-panel overflow-hidden rounded-[3rem] grid lg:grid-cols-2 items-center">
-                    <div className="p-12 md:p-20 order-2 lg:order-1">
+                  <div className="glass-panel overflow-hidden rounded-[3rem] p-12 md:p-24 text-center relative">
+                    <div className="absolute inset-0 opacity-5 bg-repeat mix-blend-overlay" style={{ backgroundImage: `url(${PATTERN_URL})`, backgroundSize: '100px' }}></div>
+                    <div className="relative z-10">
                       <span className="text-[#D4AF37] text-[10px] tracking-[0.5em] uppercase mb-8 block">A Experiência DORÉ</span>
-                      <h3 className="text-4xl md:text-5xl font-serif mb-8 leading-tight text-white">O Ritual do<br/><span className="italic text-[#D4AF37]">Desejo.</span></h3>
-                      <p className="text-white/40 font-light leading-relaxed mb-10 text-lg">
+                      <h3 className="text-4xl md:text-5xl font-serif mb-8 leading-tight text-white">O Ritual do <span className="italic text-[#D4AF37]">Desejo.</span></h3>
+                      <p className="text-white/40 font-light leading-relaxed mb-12 text-lg max-w-3xl mx-auto">
                         Não é apenas uma entrega, é um protocolo de luxo. Receba o seu assado em embalagem térmica boutique, projetada para manter a crosta sonora e os sucos exatamente como saíram do fogo.
                       </p>
-                      <div className="flex gap-10">
+                      <div className="flex flex-col md:flex-row justify-center items-center gap-10 md:gap-20">
                         <div>
-                          <span className="block text-[#D4AF37] font-mono text-2xl mb-1 drop-shadow-md">24h</span>
-                          <span className="text-[9px] uppercase tracking-widest opacity-40">Infusão</span>
+                          <span className="block text-[#D4AF37] font-mono text-4xl mb-2 drop-shadow-md">24h</span>
+                          <span className="text-[10px] uppercase tracking-widest opacity-40">Infusão</span>
                         </div>
-                        <div className="w-[1px] h-12 bg-white/10"></div>
+                        <div className="hidden md:block w-[1px] h-16 bg-white/10"></div>
+                        <div className="md:hidden h-[1px] w-16 bg-white/10"></div>
                         <div>
-                          <span className="block text-[#D4AF37] font-mono text-2xl mb-1 drop-shadow-md">85°C</span>
-                          <span className="text-[9px] uppercase tracking-widest opacity-40">Ponto Perfeito</span>
+                          <span className="block text-[#D4AF37] font-mono text-4xl mb-2 drop-shadow-md">85°C</span>
+                          <span className="text-[10px] uppercase tracking-widest opacity-40">Ponto Perfeito</span>
                         </div>
                       </div>
-                    </div>
-                    <div className="aspect-square lg:aspect-auto lg:h-[600px] overflow-hidden order-1 lg:order-2 relative group bg-black">
-                      <img src={SENSORIAL_IMG} alt="Sensorial Assado" loading="lazy" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-1000 group-hover:scale-105" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-transparent lg:block hidden"></div>
                     </div>
                   </div>
                 </section>
@@ -369,7 +416,7 @@
                       <div key={item.id} className="glass-panel p-12 flex flex-col md:flex-row justify-between items-center group rounded-[2.5rem]">
                         <div className="max-w-[80%] text-center md:text-left mb-6 md:mb-0">
                           <h4 className="text-2xl font-serif mb-3 text-[#F4F1EA]">{item.name}</h4>
-                          <p className="text-xs text-white/30 leading-relaxed font-light">{item.desc}</p>
+                          <p className="text-xs text-white/40 leading-relaxed font-light">{item.desc}</p>
                         </div>
                         <div className="text-center md:text-right">
                           <p className="font-mono text-[#D4AF37] text-lg mb-6">R$ {item.price}</p>
@@ -392,7 +439,7 @@
                       <div key={item.id} className="glass-panel p-10 flex flex-col justify-between rounded-[2rem] text-center md:text-left">
                         <div>
                           <h4 className="text-xl font-serif mb-4 text-[#F4F1EA]">{item.name}</h4>
-                          <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mb-10 leading-relaxed h-8">{item.desc}</p>
+                          <p className="text-[10px] text-white/40 uppercase tracking-[0.2em] mb-10 leading-relaxed h-8">{item.desc}</p>
                         </div>
                         <div className="flex justify-between items-center pt-6 border-t border-white/5">
                           <span className="font-mono text-[#D4AF37] text-sm">R$ {item.price}</span>
@@ -408,11 +455,11 @@
 
               {/* CARRINHO DE CONCIERGE */}
               <div className={`fixed inset-0 z-50 transition-all duration-700 ${isCartOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
-                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsCartOpen(false)}></div>
+                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => { triggerVibration(10); setIsCartOpen(false); }}></div>
                 <div className={`absolute top-0 right-0 h-full w-full max-w-md bg-[#0a0a0a]/95 backdrop-blur-[40px] border-l border-white/10 shadow-[-20px_0_50px_rgba(0,0,0,0.8)] flex flex-col transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                   <div className="p-8 border-b border-white/10 flex justify-between items-center bg-black/50">
                     <h4 className="text-2xl font-serif tracking-[0.1em] text-[#D4AF37]">Concierge de Reserva</h4>
-                    <button onClick={() => setIsCartOpen(false)} className="opacity-40 hover:opacity-100 hover:text-[#D4AF37] transition-colors">
+                    <button onClick={() => { triggerVibration(10); setIsCartOpen(false); }} className="opacity-40 hover:opacity-100 hover:text-[#D4AF37] transition-colors p-2">
                       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
                   </div>
@@ -430,12 +477,12 @@
                             <div key={item.id} className="flex justify-between items-center group animate-fade-in">
                               <div className="max-w-[70%]">
                                 <p className="font-serif text-lg mb-1 text-[#F4F1EA] group-hover:text-[#D4AF37] transition-colors">{item.name}</p>
-                                <p className="text-[10px] font-mono opacity-40 tracking-[0.1em] uppercase">{item.qty} x R$ {item.price}</p>
+                                <p className="text-[10px] font-mono opacity-50 tracking-[0.1em] uppercase">{item.qty} x R$ {item.price}</p>
                               </div>
                               <div className="flex items-center gap-4">
                                 <span className="font-mono text-[#D4AF37] text-sm">R$ {item.price * item.qty}</span>
-                                <button onClick={() => removeFromCart(item.id)} className="text-white/20 hover:text-red-500 transition-colors p-2">
-                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                <button onClick={() => removeFromCart(item.id)} className="text-white/30 hover:text-red-500 transition-colors p-2">
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                                 </button>
                               </div>
                             </div>
@@ -446,20 +493,20 @@
                           <h5 className="text-[10px] uppercase tracking-[0.4em] text-[#D4AF37] font-bold">Detalhes da Entrega</h5>
                           <div className="space-y-4">
                             <div className="flex flex-col gap-2">
-                              <label className="text-[9px] uppercase tracking-widest text-white/40 pl-2">Janela de Entrega</label>
-                              <select value={horario} onChange={(e) => setHorario(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors appearance-none">
+                              <label className="text-[9px] uppercase tracking-widest text-white/50 pl-2">Janela de Entrega</label>
+                              <select value={horario} onChange={(e) => setHorario(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors appearance-none shadow-inner">
                                 {HORARIOS_ENTREGA.map(h => <option key={h} value={h} className="bg-neutral-900">{h}</option>)}
                               </select>
                             </div>
                             <div className="flex flex-col gap-2">
-                              <label className="text-[9px] uppercase tracking-widest text-white/40 pl-2">Bairro (Chapecó)</label>
-                              <select value={bairro} onChange={(e) => setBairro(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors appearance-none">
+                              <label className="text-[9px] uppercase tracking-widest text-white/50 pl-2">Bairro (Chapecó)</label>
+                              <select value={bairro} onChange={(e) => setBairro(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors appearance-none shadow-inner">
                                 {Object.keys(BAIRROS_FRETE).map(b => <option key={b} value={b} className="bg-neutral-900">{b}</option>)}
                               </select>
                             </div>
                             <div className="flex flex-col gap-2">
-                              <label className="text-[9px] uppercase tracking-widest text-white/40 pl-2">Instruções para o Motoboy</label>
-                              <input type="text" value={instrucoes} onChange={(e) => setInstrucoes(e.target.value)} placeholder="Ex: Condomínio, Bloco B..." className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors placeholder:text-white/20" />
+                              <label className="text-[9px] uppercase tracking-widest text-white/50 pl-2">Instruções para o Motoboy</label>
+                              <input type="text" value={instrucoes} onChange={(e) => setInstrucoes(e.target.value)} placeholder="Ex: Condomínio, Bloco B..." className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-xs font-sans text-white focus:border-[#D4AF37] outline-none transition-colors placeholder:text-white/20 shadow-inner" />
                             </div>
                           </div>
                         </div>
@@ -470,11 +517,11 @@
                   {cart.length > 0 && (
                     <div className="p-8 border-t border-white/10 bg-black/60 backdrop-blur-xl space-y-6 shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
                       <div className="space-y-3">
-                        <div className="flex justify-between text-[10px] text-white/40 tracking-[0.2em] uppercase">
+                        <div className="flex justify-between text-[10px] text-white/50 tracking-[0.2em] uppercase">
                           <span>Subtotal</span>
                           <span className="font-mono text-white">R$ {subtotal.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between text-[10px] text-white/40 tracking-[0.2em] uppercase items-center">
+                        <div className="flex justify-between text-[10px] text-white/50 tracking-[0.2em] uppercase items-center">
                           <span className="flex items-center gap-2">Frete Inteligente <div className="w-1 h-1 bg-[#D4AF37] rounded-full animate-ping"></div></span>
                           <span className="font-mono text-white">R$ {freightValue.toFixed(2)}</span>
                         </div>
@@ -486,6 +533,7 @@
                       </div>
                       
                       <button onClick={() => {
+                          triggerVibration([50, 30, 50]); // Vibração de Sucesso!
                           const itemsMsg = cart.map(i => `• ${i.name} (${i.qty}x)`).join('%0A');
                           const finalMsg = `Olá, Concierge DORÉ! Gostaria de confirmar minha reserva.%0A%0A*📦 Meu Pedido:*%0A${itemsMsg}%0A%0A*⏱ Horário Solicitado:*%0A${horario}%0A%0A*📍 Local da Entrega:*%0ABairro: ${bairro}%0AInstruções: ${instrucoes || 'Nenhuma'}%0A%0A*💳 Total (com frete):* R$ ${total.toFixed(2)}%0A%0A_Aguardando chave Pix e confirmação._`;
                           window.open(`https://wa.me/5549999999999?text=${finalMsg}`);
